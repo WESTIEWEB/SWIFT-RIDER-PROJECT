@@ -41,7 +41,7 @@ export const login = async (
     }
 
     const token = jwt.sign(
-      { _id: rider.email, role: rider.role },
+      { id: rider.id, role: rider.role },
       process.env.App_secret!,
       {
         expiresIn: "7d",

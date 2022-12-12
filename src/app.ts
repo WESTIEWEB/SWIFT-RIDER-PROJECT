@@ -11,11 +11,11 @@ dotenv.config();
 
 
 //Sequelize connection
-db.sync().then(() => {
-    console.log('DB connected successfully')
-}).catch(err => {
- console.log(err)
-})
+// db.sync().then(() => {
+//     console.log('DB connected successfully')
+// }).catch(err => {
+//  console.log(err)
+// })
 //const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname')
 
 const app = express();
