@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
 import { loginSchema, option } from "../utils/validation";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from 'jsonwebtoken'
 
 //@desc Login rider
 //@route Post /auth/login
@@ -59,4 +59,48 @@ export const login = async (
       route: "/users/login",
     });
   }
+}
+
+  export const updateRiderProfile = async(req: JwtPayload, res: Response)=>{
+    try{
+        const id = req.rider.id;
+        const {firstName, lastName,phone,email} = req.body
+//Joi validation
+const validateResult = registerSchema.validate(req.body, option)
+    if(validateResult.error) {
+        res.status(400).json({
+            Error: validateResult.error.details[0].message
+        })
+    }
+//check if the rider is a registered user
+const Rider = (await RiderInstance.findOne({where: { id: id }})) as unknown as RiderAttributes;
+if(!Rider){
+    return res.status(400).json({
+        Error: "You are not authorised to update your profile"
+    })
+}
+//Update Record
+const updatedRider = await RiderInstance.update(
+    {
+        firstName,
+        lastName,
+        phone,
+        email,
+    }, { where: { id: id } }) as unknown as RiderAttributes;
+
+if(updatedRider){
+    const User = await RiderInstance.findOne({ where: { id: id } }) as unknown as RiderAttributes;
+}
+return res.status(400).json({
+    Error: "Error occured"
+})
+    } catch(err){
+        return res.status(500).json({
+        Error: "Internal server Error",
+        route: "/users/update-profile"
+        })    
+    }
 };
+
+
+
