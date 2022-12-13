@@ -16,7 +16,7 @@ Model<UserAttribute>{}
 
 UserInstance.init({
     id:{
-        type:DataTypes.UUIDV4,
+        type:DataTypes.UUID,
         primaryKey:true,
         allowNull:false
     },
