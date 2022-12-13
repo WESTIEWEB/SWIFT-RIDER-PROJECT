@@ -5,16 +5,14 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 //@desc Login rider
-//@route Post /auth/login
-//@access Public
+//@route Post /rider/login
+//@access Private
 export const login = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    // const { email, password } = req.body;
-
     //validate email and password
     const validateResult = loginSchema.validate(req.body, option);
     if (validateResult.error) {

@@ -22,7 +22,7 @@ export interface RiderAttributes{
 export class RiderInstance extends Model<RiderAttributes>{}
 RiderInstance.init({
     id: {
-        type:DataTypes.UUIDV4,
+        type:DataTypes.UUID,
         primaryKey: true,
         allowNull: false,
     },

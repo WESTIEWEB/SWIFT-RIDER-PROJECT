@@ -11,11 +11,11 @@ dotenv.config();
 
 
 //Sequelize connection
-// db.sync().then(() => {
-//     console.log('DB connected successfully')
-// }).catch(err => {
-//  console.log(err)
-// })
+db.sync().then(() => {
+    console.log('DB connected successfully')
+}).catch(err => {
+ console.log(err)
+})
 //const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname')
 
 const app = express();
@@ -40,7 +40,7 @@ app.use('/admin', adminRouter)
 //  })
 // })
 
-const port = 4000;
+const port = 5000;
 app.listen(port, ()=>{
     console.log(`Server running on http://localhost:${port}`)
 })
