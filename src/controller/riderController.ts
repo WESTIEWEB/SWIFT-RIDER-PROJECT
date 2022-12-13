@@ -46,7 +46,7 @@ export const login = async (
       {
         expiresIn: "7d",
       }
-    );
+    );   
 
     res.status(200).json({
       success: true,
