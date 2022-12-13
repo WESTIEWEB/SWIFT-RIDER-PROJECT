@@ -2,8 +2,29 @@ import {Sequelize} from 'sequelize';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const db = new Sequelize('app', '', '', {
-    storage: "./rider.postgres",
+// export const db = new Sequelize('app', 'postgres', 'password', {
+//     host: "localhost",
+//     port: 5432,
+//     dialect: "postgres",
+//     logging: false
+// });
+
+
+export const db = new Sequelize(process.env.DB_NAME as string, process.env.DB_USER as string, process.env.DB_PASSWORD as string, {
+    host: "localhost",
+    port: Number(process.env.DB_PORT),
     dialect: "postgres",
     logging: false
 });
+
+//SENDING OTP TO PHONE
+export const accountSid = process.env.ACCOUNTSID;
+export const authToken = process.env.AUTHTOKEN
+export const fromAdminPhone = process.env.FROMADMINPHONE
+
+//SENDING OTP TO EMAIL
+export const GMAIL_USER =process.env.Gmail
+export const GMAIL_PASS =process.env.GmailPass
+export const FromAdminMail=process.env.FromAdminMail as string
+export const userSubject=process.env.userSubject as string
+export const APP_SECRET = process.env.APP_SECRET as string
