@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
-import { loginSchema, option } from "../utils/validation";
+import { loginSchema, option } from "../utils/utility";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 

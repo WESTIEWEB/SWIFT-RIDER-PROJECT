@@ -22,7 +22,7 @@ export interface RiderAttributes{
 export class RiderInstance extends Model<RiderAttributes>{}
 RiderInstance.init({
     id: {
-        type:DataTypes.UUIDV4,
+        type:DataTypes.UUID,
         primaryKey: true,
         allowNull: false,
     },
@@ -89,7 +89,7 @@ RiderInstance.init({
         }
     },
     otp: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull: false,
         validate: {
             notNull: {
@@ -113,11 +113,11 @@ RiderInstance.init({
         }
     },
     lat: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull:true,
     },
     lng: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull:true,
     },
     verified: {
