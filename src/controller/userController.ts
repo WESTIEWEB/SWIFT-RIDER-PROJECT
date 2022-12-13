@@ -141,7 +141,7 @@ export const resetPasswordGet = async(req:Request, res:Response) => {
     } catch (error) {
         res.status(500).json({
             Error: "Internal server Error",
-            route: "/users/forgot-password",
+            route: "//resetpassword/:id/:token",
           }); 
     }
 }
@@ -183,7 +183,10 @@ export const resetPasswordPost  = async( req:Request, res:Response) =>{
           });
 
     } catch (error) {
-        
+        res.status(500).json({
+            Error: "Internal server Error",
+            route: "/resetpassword/:id/:token",
+          }); 
     }
 }
 
