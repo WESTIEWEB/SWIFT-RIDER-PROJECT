@@ -6,7 +6,8 @@ const router = express.Router();
 
 
 import {login} from "../controller/riderController"
-import {registerRider} from "../controller/riderController"
+import {registerRider} from "../controller/riderController";
+// import { upload } from '../utils/multer'
 
 import multer from 'multer';
 const upload = multer({dest: 'uploads/'})

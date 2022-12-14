@@ -8,7 +8,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
-import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, registerSchema } from "../utils/validation";
+import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, registerSchema, validatePassword } from "../utils/validation";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {v4 as uuidv4 } from 'uuid';
@@ -24,12 +24,12 @@ import { FromAdminMail, userSubject } from "../config";
 export const registerRider = async (req: JwtPayload, res: Response, next:NextFunction) => {
   try {
     const { firstName, lastName, email, password, confirmPassword, phone, address, image, plateNumber } = req.body;
-    if(password !== confirmPassword){
-        return res.status(400).json({Error:'Password does not match'})
-    }
-    if(!firstName || !lastName || !email || !password || !confirmPassword || !phone || !address || !image || !plateNumber){
-        return res.status(400).json({Error:'All fields are required'})
-    }
+    // if(password !== confirmPassword){
+    //     return res.status(400).json({Error:'Password does not match'})
+    // }
+    // if(!firstName || !lastName || !email || !password || !confirmPassword || !phone || !address || !image || !plateNumber){
+    //     return res.status(400).json({Error:'All fields are required'})
+    // }
 
     const uuidrider = uuidv4();
 
@@ -51,12 +51,16 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
     const { otp, expiry } = GenerateOTP();
 
     //check if user exist
-    const Rider = (await RiderInstance.findOne({
+    const riderEmail = (await RiderInstance.findOne({
       where: { email: email },
     })) as unknown as RiderAttributes;
 
+    const riderPhone = (await RiderInstance.findOne({
+      where: { phone: phone },
+    }))
+
     //create user
-    if (!Rider) {
+    if (!riderEmail && ! riderPhone) {
       let rider = await RiderInstance.create({
         id: uuidrider,
         firstName,
@@ -116,55 +120,50 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
 
 
 
-
-//@desc Login rider
-//@route Post /auth/login
-//@access Public
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const login = async (req: JwtPayload,res: Response) => {
   try {
-    // const { email, password } = req.body;
+    const { email, password } = req.body;
 
-    //validate email and password
-    const validateResult = loginSchema.validate(req.body, option);
-    if (validateResult.error) {
-      return res.status(400).json({
-        Error: validateResult.error.details[0].message,
+
+    const {error} = loginSchema.validate(req.body, option);
+    if (error) return res.status(400).json({Error: error.details[0].message,
       });
-    }
+    
 
-    const { email, password } = validateResult.value;
+      const rider = await RiderInstance.findOne({
+        where: { email: email}
+     }) as unknown as RiderAttributes;
+     
 
-    // check if the rider exist
-    const rider = (await RiderInstance.findOne({
-      where: { email },
-    })) as unknown as RiderAttributes;
-    if (!rider) {
-      return res.status(400).json("Invalid credentials");
-    }
+     if(rider.verified === true){
+        const validation = await validatePassword(password, rider.password, rider.salt);
 
-    //Check if password matches
-    const isPassword = await bcrypt.compare(password, rider.password);
+        if(validation){
+           let signature = await GenerateSignature({
+              id:rider.id,
+              email:rider.email,
+              verified:rider.verified
+             }) 
 
-    if (!isPassword) {
-      return res.status(400).json("Invalid credentials");
-    }
+           return res.status(200).json({
+              message: "succesfully logged in",
+              signature,
+              email: rider.email,
+              verified: rider.verified,
+              role: rider.role
+           })
+        }
 
-    const token = jwt.sign(
-      { _id: rider.email, role: rider.role },
-      process.env.App_secret!,
-      {
-        expiresIn: "7d",
-      }
-    );
+        return res.status(400).json({
+           Error: "wrong email or password"
+        })
 
-    res.status(200).json({
-      success: true,
-      token,
-    });
+     }
+
+     return res.status(400).json({
+        message: "User not verified, please verify your account"
+     })
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
