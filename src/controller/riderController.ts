@@ -1,14 +1,6 @@
-
-// import { Request, Response, NextFunction } from "express";
-// import { RiderInstance, RiderAttributes } from "../models/riderModel";
-// import { loginSchema, option } from "../utils/validation";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-
-
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
-import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, registerSchema, validatePassword } from "../utils/validation";
+import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, riderRegisterSchema, validatePassword } from "../utils/validation";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import {v4 as uuidv4 } from 'uuid';
@@ -33,7 +25,7 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
 
     const uuidrider = uuidv4();
 
-    const validateResult = registerSchema.validate(req.body, option);
+    const validateResult = riderRegisterSchema.validate(req.body, option);
 
     if (validateResult.error) {
       return res
@@ -111,7 +103,7 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
     console.log(userPassword);
   } catch (err: any) {
     res.status(500).json({
-      Error: "E NO DEY WORK",
+      Error: "Internal server Error",
       message: err.stack,
       route: "/riders/signup",
     });
