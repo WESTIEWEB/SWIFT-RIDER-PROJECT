@@ -1,6 +1,7 @@
 import express, {Request, Response} from 'express'
 import { UserAttribute, UserInstance } from '../models/userModel';
-import { GenerateOTP, GeneratePassword, GenerateSalt, onRequestOTP, registerSchema , GenerateSignature} from "../utils/validation";
+import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature} from "../utils/validation";
+import {  onRequestOTP , GenerateOTP} from "../utils/notification";
 import {v4 as uuidv4} from 'uuid'
 
 
@@ -44,7 +45,7 @@ export const Signup = async (req: Request, res: Response) => {
           role: "user",
         });
 
-        await onRequestOTP(otp, phoneNumber);
+        // await onRequestOTP(otp, phoneNumber);
         // Check if user exist
   
         const User = await UserInstance.findOne({
@@ -52,7 +53,9 @@ export const Signup = async (req: Request, res: Response) => {
         }) as unknown as UserAttribute
         const signature = await GenerateSignature({
             id: User.id,
-            email:User.email
+            email:User.email,
+            verified: User.verified
+
         })
          return res.status(201).json({
           message: "User created successfully ",
