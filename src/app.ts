@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 
+
 //Sequelize connection
 db.sync().then(() => {
     console.log('DB connected successfully')
@@ -19,8 +20,8 @@ db.sync().then(() => {
 //const sequelize = new Sequelize('postgres://user:pass@example.com:5432/dbname')
 
 const app = express();
-
-app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json({}));
 app.use(logger('dev'));
 app.use(cookieParser());
 
@@ -30,7 +31,7 @@ app.use(cookieParser());
 //Router middleware
 app.use('/users', userRouter)
 app.use('/', indexRouter)
-app.use('/rider', riderRouter)
+app.use('/riders', riderRouter)
 app.use('/admin', adminRouter)
 
 
