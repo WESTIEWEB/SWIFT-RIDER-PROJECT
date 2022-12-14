@@ -1,22 +1,10 @@
-
-// import { Request, Response, NextFunction } from "express";
-// import { RiderInstance, RiderAttributes } from "../models/riderModel";
-// import { loginSchema, option } from "../utils/validation";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-
-
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
 import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, registerSchema, validatePassword } from "../utils/validation";
-import bcrypt from "bcryptjs";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 import {v4 as uuidv4 } from 'uuid';
-import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notification";
-import { UserInstance } from "twilio/lib/rest/conversations/v1/user";
+import { emailHtml, GenerateOTP, mailSent } from "../utils/notification";
 import { FromAdminMail, userSubject } from "../config";
-
-
 
 //@desc Register rider
 //@route Post /rider/signup
@@ -119,22 +107,18 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
 };
 
 
-
 export const login = async (req: JwtPayload,res: Response) => {
   try {
     const { email, password } = req.body;
-
 
     const {error} = loginSchema.validate(req.body, option);
     if (error) return res.status(400).json({Error: error.details[0].message,
       });
     
-
       const rider = await RiderInstance.findOne({
         where: { email: email}
      }) as unknown as RiderAttributes;
      
-
      if(rider.verified === true){
         const validation = await validatePassword(password, rider.password, rider.salt);
 
@@ -157,7 +141,6 @@ export const login = async (req: JwtPayload,res: Response) => {
         return res.status(400).json({
            Error: "wrong email or password"
         })
-
      }
 
      return res.status(400).json({
@@ -172,4 +155,3 @@ export const login = async (req: JwtPayload,res: Response) => {
     });
   }
 };
-
