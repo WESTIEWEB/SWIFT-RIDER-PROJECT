@@ -1,6 +1,6 @@
 import express, {Request, Response} from 'express';
-import {login} from "../controller/riderController"
-import {registerRider} from "../controller/riderController";
+import {login, registerRider, updateRiderProfile} from "../controller/riderController"
+import { authRider } from '../middleware/authorization'
 // import { upload } from '../utils/multer'
 
 const router = express.Router();
@@ -14,6 +14,7 @@ const upload = multer({dest: 'uploads/'})
 
 router.post('/login', login)
 router.post('/signup', upload.single('image'), registerRider) 
+router.patch('/update-rider/:signature', authRider, updateRiderProfile)
   
 
 export default router;

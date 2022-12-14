@@ -123,15 +123,8 @@ RiderInstance.init({
     },
     verified: {
         type:DataTypes.BOOLEAN,
-        allowNull: false,
-        validate: {
-            notNull: {
-                msg: "User must be verified",
-            },
-            notEmpty: {
-                msg: "User not verified",
-            },
-        }
+        allowNull: true,
+
     },
     role: {
         type:DataTypes.STRING,
