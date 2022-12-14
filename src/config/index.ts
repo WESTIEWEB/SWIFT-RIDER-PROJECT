@@ -8,3 +8,13 @@ export const db = new Sequelize(process.env.DB_NAME as string, process.env.DB_US
     dialect: "postgres",
     logging: false
 });
+
+export const AccountSid = process.env.AccountSid;
+export const authToken = process.env.AuthToken;
+export const fromAdminPhone = process.env.fromAdminPhone;
+export const APP_SECRET = process.env.APP_SECRET as string;
+
+export interface UserPayload {
+    id: string;
+    email:string;
+}
