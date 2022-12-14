@@ -1,3 +1,11 @@
+
+// import { Request, Response, NextFunction } from "express";
+// import { RiderInstance, RiderAttributes } from "../models/riderModel";
+// import { loginSchema, option } from "../utils/validation";
+// import bcrypt from "bcryptjs";
+// import jwt from "jsonwebtoken";
+
+
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
 import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, registerSchema } from "../utils/validation";
@@ -165,3 +173,4 @@ export const login = async (
     });
   }
 };
+
