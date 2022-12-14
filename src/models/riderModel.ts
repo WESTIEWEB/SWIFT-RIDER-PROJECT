@@ -89,7 +89,7 @@ RiderInstance.init({
         }
     },
     otp: {
-        type:DataTypes.INTEGER,
+        type:DataTypes.NUMBER,
         allowNull: false,
         validate: {
             notNull: {
@@ -113,11 +113,11 @@ RiderInstance.init({
         }
     },
     lat: {
-        type:DataTypes.INTEGER,
+        type:DataTypes.NUMBER,
         allowNull:true,
     },
     lng: {
-        type:DataTypes.INTEGER,
+        type:DataTypes.NUMBER,
         allowNull:true,
     },
     verified: {
