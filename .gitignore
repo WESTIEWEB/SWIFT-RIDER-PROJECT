@@ -3,3 +3,5 @@ dist
 .env
 coverage
 .Ds_store
+yarn-error.log
+yarn.lock
