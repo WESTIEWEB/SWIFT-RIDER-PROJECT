@@ -2,3 +2,5 @@ node_modules
 dist
 .env
 coverage
+yarn.lock
+.Ds_store
