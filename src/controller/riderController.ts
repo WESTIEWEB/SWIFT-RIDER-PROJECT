@@ -112,22 +112,16 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
 
 
 
-
-//@desc Login rider
-//@route Post /auth/login
-//@access Public
 export const login = async (req: JwtPayload,res: Response) => {
   try {
     const { email, password } = req.body;
 
-    //validate email and password
+
     const {error} = loginSchema.validate(req.body, option);
     if (error) return res.status(400).json({Error: error.details[0].message,
       });
     
 
-    // check if the rider exist
-      // check if user exist
       const rider = await RiderInstance.findOne({
         where: { email: email}
      }) as unknown as RiderAttributes;
