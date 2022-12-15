@@ -15,7 +15,7 @@ router.get('/resend-otp/:signature', ResendOTP)
 //routes for reset user password 
 router.post('/forgot-password', forgotPassword)
 router.get("/resetpassword/:id/:token", resetPasswordGet)
-router.post("/resetpassword/:id/:token",resetPasswordPost)
+router.post("/resetpassword/:id/:token", resetPasswordPost)
 
 
 export default router;

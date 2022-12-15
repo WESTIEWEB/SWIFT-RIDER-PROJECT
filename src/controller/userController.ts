@@ -258,7 +258,7 @@ export const ResendOTP = async (req: Request, res: Response) => {
  }
 
 
-/**=========================== Resend Password ============================== **/
+/**=========================== Resend Password============================== **/
 export const forgotPassword = async(req: Request, res: Response) => {
   try {
       const {email} = req.body;
@@ -322,6 +322,7 @@ export const resetPasswordPost  = async( req:Request, res:Response) =>{
   const oldUser = (await UserInstance.findOne({
       where: {id: id} 
   }))as unknown as UserAttribute
+  console.log(token,"i am a user")
   const validateResult = resetPasswordSchema.validate(req.body, option);
   if (validateResult.error) {
     return res.status(400).json({
@@ -333,9 +334,10 @@ export const resetPasswordPost  = async( req:Request, res:Response) =>{
           message: "user does not exist"
       })
   }
-  const secret = APP_SECRET + oldUser.password
+  const secret = APP_SECRET + oldUser.password;
   try {
-      const verify = jwt.verify( token, secret)
+      const verify = jwt.verify( token, secret) as unknown as JwtPayload
+      console.log("id:",verify)
       const encryptedPassword = await bcrypt.hash(password, 10)
      const updatedPassword =  (await UserInstance.update(
       {
@@ -347,5 +349,9 @@ export const resetPasswordPost  = async( req:Request, res:Response) =>{
           updatedPassword
         });
   } catch (error) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/users/reset-password/:id/:token",
+    }); 
   }
 }

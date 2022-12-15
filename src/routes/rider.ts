@@ -1,5 +1,5 @@
 import express, {Request, Response} from 'express';
-import {login, registerRider, updateRiderProfile} from "../controller/riderController"
+import {login, registerRider, updateRiderProfile, VerifyUser, ResendOTP} from "../controller/riderController"
 import { authRider } from '../middleware/authorization'
 // import { upload } from '../utils/multer'
 
@@ -15,6 +15,8 @@ const upload = multer({dest: 'uploads/'})
 router.post('/login', login)
 router.post('/signup', upload.single('image'), registerRider) 
 router.patch('/update-rider/:signature', authRider, updateRiderProfile)
+router.post('/verify/:signature', VerifyUser)
+router.get('/resend-otp/:signature', ResendOTP)
   
 
 export default router;
