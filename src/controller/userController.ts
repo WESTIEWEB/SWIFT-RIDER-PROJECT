@@ -6,27 +6,33 @@ import bcrypt from 'bcrypt'
 import {v4 as uuidv4} from 'uuid'
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { APP_SECRET, FromAdminMail, userSubject } from '../config';
+import { RiderAttributes, RiderInstance } from '../models/riderModel';
 
 
 export const Signup = async (req: Request, res: Response) => {
     try {
-      const { name, phoneNumber, email, password, confirm_password} = req.body; 
+      console.log('req.body', req.body)
+      const { name, phone, email, password, confirmpassword} = req.body; 
     //   if(!name || !phoneNumber || !email || !password){
     //     return res.status(400).json({Error: "fill all the required fields"});
     //   }
       const uuiduser = uuidv4();
-  
+      console.log('we got to this point', uuiduser)
       const validateResult = registerSchema.validate(req.body);
       if (validateResult.error) {
+        console.log('we got to this point', validateResult.error)
         return res.status(400).json({
           Error: validateResult.error.details[0].message,
+         
         });
       }
+      console.log('we got to this point', validateResult)
       //Generate salt
   
       const salt = await GenerateSalt();
+      console.log('salt is ', salt)
       const userPassword = (await GeneratePassword(password, salt)) as string;
-
+      console.log('userpassword is ', userPassword)
       const { otp, expiry } = GenerateOTP();
       const User = await UserInstance.findOne({ where: { email:email } });
 
@@ -35,7 +41,7 @@ export const Signup = async (req: Request, res: Response) => {
         const user = await UserInstance.create({
           id: uuiduser,
           name,
-          phoneNumber,
+          phone,
           email,
           password: userPassword,
           salt: salt,
@@ -66,13 +72,13 @@ export const Signup = async (req: Request, res: Response) => {
           signature,
         });
       }
-      return res.status(401).json({
+      return res.status(400).json({
         message: "User already exist",
       });
     } catch (error) {
       
       res.status(500).json({
-        Error: "E no dey work",
+        Error: "Internal server error",
         route: "users/signup",
       });
       console.log(error)
@@ -82,8 +88,9 @@ export const Signup = async (req: Request, res: Response) => {
 
 export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
   try {
-    const id = req.user.id;
-    const { name, phoneNumber, email } = req.body;
+    const token = req.params.id
+    const { id } = await verifySignature(token) 
+    const { name, phone, email } = req.body;
     const validateResult = editProfileSchema.validate(req.body, option);
     if (validateResult.error) {
       return res.status(400).json({
@@ -101,7 +108,7 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
     const newUser = (await UserInstance.update(
       {
         name,
-        phoneNumber,
+        phone,
         email,
       },
       { where: { id: id } }
@@ -112,6 +119,7 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
       })) as unknown as UserAttribute;
       return res.status(200).json({
         message: "Profile updated successfully",
+        User,
       });
     }
     return res.status(400).json({
@@ -141,8 +149,13 @@ export const Login = async (req: Request, res: Response) => {
       const User = await UserInstance.findOne({
           where: { email: email }
       }) as unknown as UserAttribute;
+
+      const Rider = await RiderInstance.findOne({
+        where: { email: email }
+    }) as unknown as RiderAttributes;
+    
       if (User) {
-       const validation = await validatePassword(password, User.password, User.salt)
+      const validation = await validatePassword(password, User.password, User.salt)
           if(validation){
               // Generate a new Signature
               let signature = await GenerateSignature({
@@ -152,13 +165,31 @@ export const Login = async (req: Request, res: Response) => {
               });
               return res.status(200).json({
                   message: "Login successful",
-                  signature,
+                  signature: signature,
                   id: User.id,
                   email: User.email,
                   verified: User.verified,
                   role: User.role
               })
           }
+      }else if(Rider){
+        const validation = await validatePassword(password, Rider.password, Rider.salt)
+        if(validation){
+            // Generate a new Signature
+            let signature = await GenerateSignature({
+                id: Rider.id,
+                email: Rider.email,
+                verified: Rider.verified
+            });
+            return res.status(200).json({
+                message: "Login successful",
+                signature: signature,
+                id: Rider.id,
+                email: Rider.email,
+                verified: Rider.verified,
+                role: Rider.role
+            })
+        }
       }
       return res.status(400).json({
           Error: "Wrong Username or password or not a verified user"
@@ -261,6 +292,7 @@ export const ResendOTP = async (req: Request, res: Response) => {
 /**=========================== Resend Password============================== **/
 export const forgotPassword = async(req: Request, res: Response) => {
   try {
+    console.log(req.body)
       const {email} = req.body;
       const validateResult = forgotPasswordSchema.validate(req.body, option);
   if (validateResult.error) {
@@ -272,26 +304,60 @@ export const forgotPassword = async(req: Request, res: Response) => {
      const oldUser = (await UserInstance.findOne({
       where: { email: email },
     })) as unknown as UserAttribute;
-  if(!oldUser) {
-      return res.status(400).json({
-          message: "user not found",
-        })
-  }
+
+    const oldRider = (await RiderInstance.findOne({
+      where: { email: email },
+    })) as unknown as RiderAttributes;
+
+  // if(!oldUser || !oldRider) {
+  //     return res.status(400).json({
+  //         message: "email not found",
+  //       })
+  // }
+  if(oldUser){
   const secret = APP_SECRET + oldUser.password;
-  const token = jwt.sign({email: oldUser.email, id: oldUser.id},secret, {expiresIn: "10m"})
-   const link = `http://localhost:4000/users/reset-password/${oldUser.id}/${token}`
-  if(oldUser) {
-  const html = emailHtml2(link);
-   await mailSent2(FromAdminMail, oldUser.email, userSubject, html);
-   return res.status(200).json({
-     message: "password reset link sent to email",
-  });
+   const token = jwt.sign({email: oldUser.email, id: oldUser.id},secret, {expiresIn: "10m"})
+  //  if(!token){
+  //     return res.status(400).json({
+  //         Error: "Invalid credentials",
+  //     })
+  //  }
+  const link = `http://localhost:5173/users/resetpasswordd/${oldUser.id}`
+  if(token) {
+    const html = emailHtml2(link);
+    await mailSent2(FromAdminMail, oldUser.email, userSubject, html);
+    return res.status(200).json({
+      message: "password reset link sent to email",
+      link
+    });
+  }
+  return res.status(400).json({
+          Error: "Invalid credentials",
+      })
+}else if(oldRider){
+  const secret = APP_SECRET + oldRider.password;
+    const token = jwt.sign({email: oldRider.email, id: oldRider.id},secret, {expiresIn: "10m"})
+    const link = `http://localhost:5173/users/resetpasswordd/${oldRider.id}`
+    if(token) {
+      const html = emailHtml2(link);
+      await mailSent2(FromAdminMail, oldRider.email, userSubject, html);
+      return res.status(200).json({
+        message: "password reset link sent to email",
+        link
+      });
+    }
+    return res.status(400).json({
+            Error: "Invalid credentials",
+        })
 }
-  console.log(link)
+return res.status(400).json({
+          message: "email not found",
+        })
+      
 } catch (error) {
       res.status(500).json({
           Error: "Internal server Error",
-          route: "/users/forgot-password",
+          route: "/users/forgotpasswordd",
         }); 
   }
 }
@@ -316,13 +382,12 @@ export const resetPasswordGet = async(req:Request, res:Response) => {
       res.send("Not Verified")
   }
 }
-export const resetPasswordPost  = async( req:Request, res:Response) =>{
-  const { id,token } = req.params;
+export const resetPasswordPost  = async( req:JwtPayload, res:Response) =>{
+  const { id} = req.params;
   const {password} = req.body
   const oldUser = (await UserInstance.findOne({
       where: {id: id} 
   }))as unknown as UserAttribute
-  console.log(token,"i am a user")
   const validateResult = resetPasswordSchema.validate(req.body, option);
   if (validateResult.error) {
     return res.status(400).json({
@@ -335,18 +400,22 @@ export const resetPasswordPost  = async( req:Request, res:Response) =>{
       })
   }
   const secret = APP_SECRET + oldUser.password;
+  console.log("secret",secret)
   try {
-      const verify = jwt.verify( token, secret) as unknown as JwtPayload
-      console.log("id:",verify)
-      const encryptedPassword = await bcrypt.hash(password, 10)
+      //const verify = jwt.verify(token, secret) as unknown as JwtPayload
+      //console.log("id:",verify)
+     const encryptedPassword = await bcrypt.hash(password,oldUser.salt)
+     console.log("password",password)
      const updatedPassword =  (await UserInstance.update(
       {
-         password:  encryptedPassword
+         password: encryptedPassword
        }, {where: {id: id}}
        )) as unknown as UserAttribute
+
        return res.status(200).json({
           message: "you have succesfully changed your password",
           updatedPassword
+
         });
   } catch (error) {
     res.status(500).json({

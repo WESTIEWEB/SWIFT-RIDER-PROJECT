@@ -3,8 +3,8 @@ import { db } from "../config";
 
 export interface UserAttribute {
   id: string;
+  phone: string;
   name: string;
-  phoneNumber: string;
   email: string;
   password: string;
   salt: string;
@@ -27,14 +27,9 @@ UserInstance.init(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notNull: {
-          msg: "Name is required",
-        },
-      },
+      allowNull: true,
     },
-    phoneNumber: {
+    phone: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
