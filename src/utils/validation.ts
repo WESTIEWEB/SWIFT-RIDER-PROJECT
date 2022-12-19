@@ -86,3 +86,11 @@ export const updateRiderSchema = Joi.object().keys({
     email:Joi.string(),
     city:Joi.string()
 });
+
+export const pickUpUserSchema = Joi.object().keys({
+  pickupLocation: Joi.string().required,
+  packageDescription: Joi.string().required,
+  dropOffLocation: Joi.string().required,
+  dropOffPhonenumber: Joi.string().required,
+  offerAmount: Joi.number().required,
+});
