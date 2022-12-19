@@ -4,7 +4,6 @@ dotenv.config();
 
 const cloudinary = require('cloudinary').v2;
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
- 
 
 cloudinary.config({
     cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
@@ -17,11 +16,8 @@ const storage = new CloudinaryStorage({
     params: async(req, file) =>{
         return {
             folder: 'swiftRider',
-            
         }
-       
     },
 })
 
-export const upload = multer({storage:storage})
-
+export const upload = multer({storage:storage});

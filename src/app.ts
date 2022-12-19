@@ -10,8 +10,6 @@ import cors from "cors";
 import dotenv from 'dotenv';
 dotenv.config();
 
-
-
 //Sequelize connection
 db.sync().then(() => {
     console.log('DB connected successfully')
@@ -28,20 +26,12 @@ app.use(cookieParser());
 app.use(cors());
 
 
-
-
 //Router middleware
 app.use('/users', userRouter)
 app.use('/', indexRouter)
 app.use('/riders', riderRouter)
 app.use('/admin', adminRouter)
 
-
-// app.get('/about', (req:Request, res:Response)=> {
-//  res.status(200).json({
-//     message: "Success",
-//  })
-// })
 
 const port = 4000;
 app.listen(port, ()=>{
