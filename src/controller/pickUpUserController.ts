@@ -8,6 +8,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import { option, pickUpUserSchema } from "../utils/validation";
 import { Op } from "sequelize";
+import { count } from "console";
 
 export const orderRide = async (req: JwtPayload, res: Response) => {
   try {
@@ -67,19 +68,27 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
   }
 };
 
-//==========get all uncompleted biddings(pending and accepted)============\\
+//==========get all pending bids===========\\
 export const getAllBiddings = async (req: JwtPayload, res: Response) => {
   try {
-    const limit = req.query.limit as number | undefined;
+    let {limit,page} = req.query 
+    limit = limit || 6;
+    const offset = page? page*limit : 0;
+    const currentPage = page? +page : 0;
+   
 
-    const bidding = await PickUpUserInstance.findAll({
-      limit: limit,  where: {status: "pending"}
+    const bidding = await PickUpUserInstance.findAndCountAll({
+      limit: limit, offset:offset, where: {status: "pending"}
     });
+
+    const {count,rows} = bidding;
+ const totalPages = Math.ceil(count / limit); 
+
 
     if (bidding) {
       return res.status(200).json({
         message: "You have successfully retrieved all pending bids",
-        bidding,
+        count,rows,currentPage,totalPages
       });
     }
     return res.status(400).json({
