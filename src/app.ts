@@ -6,6 +6,7 @@ import riderRouter from './routes/rider';
 import indexRouter from './routes/index';
 import adminRouter from './routes/admin';
 import {db} from './config'
+import cors from "cors";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json({}));
 app.use(logger('dev'));
 app.use(cookieParser());
+app.use(cors());
 
 
 
