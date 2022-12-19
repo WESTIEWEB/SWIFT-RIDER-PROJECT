@@ -9,12 +9,6 @@ export const db = new Sequelize(process.env.DB_NAME as string, process.env.DB_US
     logging: false
 });
 
-export const AccountSid = process.env.AccountSid;
-
-export interface UserPayload {
-    id: string;
-    email:string;
-}
 
 //SENDING OTP TO PHONE
 export const accountSid = process.env.ACCOUNTSID;

@@ -1,4 +1,3 @@
-
 import { DataTypes, Model, Sequelize} from 'sequelize'
 //import {v4 as uuidv4 } from 'uuid';
 import {db} from '../config'
@@ -6,12 +5,12 @@ export interface RiderAttributes{
     id: string;
     email:string;
     password:string;
-    firstName: string;
-    lastName: string;
+    name:string;
+    city:string;
     salt:string;
-    image:string;
-    plateNumber:string;
-    address:string;
+    validID:string;
+    passport:string;
+    documents:string
     phone: string;
     otp: number;
     otp_expiry: Date;
@@ -52,29 +51,37 @@ RiderInstance.init({
             },
         }
     },
-    firstName: {
+    name:{
+        type:DataTypes.STRING,
+        allowNull: false,
+        validate:{
+            notNull:{
+                msg:"Name is required"
+            },
+            notEmpty:{
+                msg:"please input your name"
+            },
+        }
+    },
+    city:{
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
+    validID: {
         type:DataTypes.STRING,
         allowNull: true,
     },
-    image: {
+    passport:{
         type:DataTypes.STRING,
         allowNull: true,
     },
-    plateNumber: {
-        type:DataTypes.STRING,
-        allowNull: true,
-    },
-    lastName: {
+    documents:{
         type:DataTypes.STRING,
         allowNull: true,
     },
     salt: {
         type:DataTypes.STRING,
         allowNull:false,
-    },
-    address: {
-        type:DataTypes.STRING,
-        allowNull:true,
     },
     phone: {
         type:DataTypes.STRING,
@@ -90,7 +97,7 @@ RiderInstance.init({
         }
     },
     otp: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull: false,
         validate: {
             notNull: {
@@ -114,24 +121,16 @@ RiderInstance.init({
         }
     },
     lat: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull:true,
     },
     lng: {
-        type:DataTypes.NUMBER,
+        type:DataTypes.INTEGER,
         allowNull:true,
     },
     verified: {
         type:DataTypes.BOOLEAN,
-        allowNull: false,
-        validate: {
-            notNull: {
-                msg: "User must be verified",
-            },
-            notEmpty: {
-                msg: "User not verified",
-            },
-        }
+        allowNull: true,
     },
     role: {
         type:DataTypes.STRING,
@@ -140,6 +139,8 @@ RiderInstance.init({
 },
     {
         sequelize:db,
-        tableName: 'rider'
+        tableName:'rider'
     }
 );
+
+
