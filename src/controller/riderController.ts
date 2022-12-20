@@ -5,6 +5,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import {v4 as uuidv4 } from 'uuid';
 import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notification";
 import { FromAdminMail, userSubject } from "../config";
+import { PickUpUserInstance } from '../models/pickUpUserModel';
 //@desc Register rider
 //@route Post /rider/signup
 //@access Public
@@ -253,6 +254,74 @@ export const ResendOTP = async (req: Request, res: Response) => {
      })
   }
  }
+
+
+ export const RiderDashboardCompletedOrders = async (req: JwtPayload, res: Response) => {
+  try {
+      const id = req.rider.id;
+      const Rider = await RiderInstance.findOne({
+          where: { id: id }
+      }) as unknown as RiderAttributes;
+      if(!Rider) {
+          return res.status(400).json({
+              Error: "You are not authorised to view this page",
+              //route: "/riders/rider-dashboard-completed-orders"
+          })
+      }
+      const {count: totalOrders} = await PickUpUserInstance.findAndCountAll({
+          where: { id: id, status: 'completed' }
+      })
+      return res.status(200).json({
+        totalOrders,
+        
+      })
+ } catch (err) {
+      return res.status(500).json({
+          Error: "Internal server Error",
+          route: "/riders/rider-dashboard-completed-orders"
+      })
+  }
+}
+
+/**============================Rider Dashboard My Order=========================== **/
+
+export const RiderDashboardPendingOrders = async (req: JwtPayload, res: Response) => {
+try {
+  const id = req.rider.id;
+  const Rider = await RiderInstance.findOne({
+      where: { id: id }
+  }) as unknown as RiderAttributes;
+  if(!Rider) {
+      return res.status(400).json({
+          Error: "You are not authorised to view this page",
+      })
+  }
+
+  const pageSize = 10;
+    const page = req.query.page || 1;
+
+    // Calculate the offset based on the page size and number
+    const offset = (page - 1) * pageSize;
+
+    // Find the orders for the current page
+    const orders = await PickUpUserInstance.findAll({
+      where: { status: 'pending' },
+      limit: pageSize,
+      offset: offset,
+      
+
+    });
+    
+      // Send the paginated results as a response
+     res.json({ orders});
+ } catch (error) {
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      route: "/riders/rider-dashboard-pending-orders"
+    });
+
+  }
+}
 
 /**============================Rider Dashboard=========================== **/
 // export const RiderDashboard = async (req: JwtPayload, res: Response) => {
