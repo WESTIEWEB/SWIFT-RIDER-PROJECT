@@ -322,7 +322,7 @@ export const forgotPassword = async(req: Request, res: Response) => {
   //         Error: "Invalid credentials",
   //     })
   //  }
-  const link = `http://localhost:5173/users/resetpasswordd/${oldUser.id}`
+  const link = `${process.env.baseUrl}/users/resetpasswordd/${oldUser.id}`
   if(token) {
     const html = emailHtml2(link);
     await mailSent2(FromAdminMail, oldUser.email, userSubject, html);
@@ -337,7 +337,7 @@ export const forgotPassword = async(req: Request, res: Response) => {
 }else if(oldRider){
   const secret = APP_SECRET + oldRider.password;
     const token = jwt.sign({email: oldRider.email, id: oldRider.id},secret, {expiresIn: "10m"})
-    const link = `http://localhost:5173/users/resetpasswordd/${oldRider.id}`
+    const link = `${process.env.baseUrl}/users/resetpasswordd/${oldRider.id}`
     if(token) {
       const html = emailHtml2(link);
       await mailSent2(FromAdminMail, oldRider.email, userSubject, html);
