@@ -1,18 +1,19 @@
 import express, {Request, Response} from 'express'
 import { UserAttribute, UserInstance } from '../models/userModel';
-import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature, option, editProfileSchema, validatePassword, loginSchema, verifySignature, forgotPasswordSchema, resetPasswordSchema} from "../utils/validation";
+import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature, option, editProfileSchema, validatePassword, loginSchema, verifySignature, forgotPasswordSchema, resetPasswordSchema, orderRideSchema} from "../utils/validation";
 import {  onRequestOTP , GenerateOTP, emailHtml, mailSent, mailSent2, emailHtml2} from "../utils/notification";
 import bcrypt from 'bcrypt'
 import {v4 as uuidv4} from 'uuid'
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { APP_SECRET, FromAdminMail, userSubject } from '../config';
+import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
 import { RiderAttributes, RiderInstance } from '../models/riderModel';
+import { OrderAttribute, OrderInstance } from '../models/orderModel';
 
 
 export const Signup = async (req: Request, res: Response) => {
     try {
       console.log('req.body', req.body)
-      const { name, phone, email, password, confirmpassword} = req.body; 
+      const { name, phone, email, password, confirm_password} = req.body; 
     //   if(!name || !phoneNumber || !email || !password){
     //     return res.status(400).json({Error: "fill all the required fields"});
     //   }
@@ -30,14 +31,24 @@ export const Signup = async (req: Request, res: Response) => {
       //Generate salt
   
       const salt = await GenerateSalt();
-      console.log('salt is ', salt)
       const userPassword = (await GeneratePassword(password, salt)) as string;
-      console.log('userpassword is ', userPassword)
+  
       const { otp, expiry } = GenerateOTP();
       const User = await UserInstance.findOne({ where: { email:email } });
+      const userPhone = await UserInstance.findOne({
+        where: { phone: phone}
+      })
+      
+      const isRiderEmail = (await RiderInstance.findOne({
+        where: { email: email },
+      })) as unknown as RiderAttributes;
+  
+      const isRiderPhone = (await RiderInstance.findOne({
+        where: { phone: phone },
+      }))
 
       console.log('we got to this point')
-      if (!User) {
+      if (!User && !userPhone && !isRiderEmail && !isRiderPhone) {
         const user = await UserInstance.create({
           id: uuiduser,
           name,
@@ -73,7 +84,7 @@ export const Signup = async (req: Request, res: Response) => {
         });
       }
       return res.status(400).json({
-        message: "User already exist",
+        Error: "Email or Phone Number already exist",
       });
     } catch (error) {
       
@@ -123,7 +134,7 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
       });
     }
     return res.status(400).json({
-      message: "User does not exist",
+      Error: "User does not exist",
     });
   } catch (err) {
     return res.status(500).json({
@@ -136,9 +147,7 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
 export const Login = async (req: Request, res: Response) => {
   try {
       const { email, password } = req.body;
-      if(!email || !password) {
-        return res.json({Error:'fill all fields'})
-      } 
+  
       const validateResult = loginSchema.validate(req.body, option);
       if (validateResult.error) {
           return res.status(400).json({
@@ -152,8 +161,7 @@ export const Login = async (req: Request, res: Response) => {
 
       const Rider = await RiderInstance.findOne({
         where: { email: email }
-    }) as unknown as RiderAttributes;
-    
+      }) as unknown as RiderAttributes;
       if (User) {
       const validation = await validatePassword(password, User.password, User.salt)
           if(validation){
@@ -169,30 +177,41 @@ export const Login = async (req: Request, res: Response) => {
                   id: User.id,
                   email: User.email,
                   verified: User.verified,
-                  role: User.role
+                  role: User.role,
+                  name: User.name,
               })
           }
-      }else if(Rider){
-        const validation = await validatePassword(password, Rider.password, Rider.salt)
-        if(validation){
-            // Generate a new Signature
-            let signature = await GenerateSignature({
-                id: Rider.id,
-                email: Rider.email,
-                verified: Rider.verified
-            });
-            return res.status(200).json({
-                message: "Login successful",
-                signature: signature,
-                id: Rider.id,
-                email: Rider.email,
-                verified: Rider.verified,
-                role: Rider.role
-            })
-        }
+          return res.status(400).json({
+            Error: "Wrong Username or password or not a verified user"
+        })
       }
-      return res.status(400).json({
-          Error: "Wrong Username or password or not a verified user"
+      else if (Rider) {
+      const validation = await validatePassword(password, Rider.password, Rider.salt)
+          if(validation){
+              // Generate a new Signature
+              let signature = await GenerateSignature({
+                  id: Rider.id,
+                  email: Rider.email,
+                  verified: Rider.verified
+              });
+              return res.status(200).json({
+                  message: "Login successful",
+                  signature: signature,
+                  id: Rider.id,
+                  email: Rider.email,
+                  verified: Rider.verified,
+                  role: Rider.role,
+                  name: Rider.name
+              })
+          }
+          return res.status(400).json({
+            Error: "Wrong Username or password or not a verified user"
+        })
+      }
+      
+    
+      return res.status(401).json({
+          Error: "account does not exist, please signup"
       })
   } catch (err:any) {
     return res.status(500).json({
@@ -322,7 +341,7 @@ export const forgotPassword = async(req: Request, res: Response) => {
   //         Error: "Invalid credentials",
   //     })
   //  }
-  const link = `${process.env.baseUrl}/users/resetpasswordd/${oldUser.id}`
+  const link = `${Base_Url}/users/resetpasswordd/${oldUser.id}`
   if(token) {
     const html = emailHtml2(link);
     await mailSent2(FromAdminMail, oldUser.email, userSubject, html);
@@ -337,7 +356,7 @@ export const forgotPassword = async(req: Request, res: Response) => {
 }else if(oldRider){
   const secret = APP_SECRET + oldRider.password;
     const token = jwt.sign({email: oldRider.email, id: oldRider.id},secret, {expiresIn: "10m"})
-    const link = `${process.env.baseUrl}/users/resetpasswordd/${oldRider.id}`
+    const link = `${Base_Url}/users/resetpasswordd/${oldRider.id}`
     if(token) {
       const html = emailHtml2(link);
       await mailSent2(FromAdminMail, oldRider.email, userSubject, html);
@@ -422,5 +441,155 @@ export const resetPasswordPost  = async( req:JwtPayload, res:Response) =>{
       Error: "Internal server Error",
       route: "/users/reset-password/:id/:token",
     }); 
+  }
+}
+
+
+/*********************** ORDER RIDE **************************/
+export const orderRide = async (req: JwtPayload, res: Response) => {
+  try {
+    const { id } = req.user;
+    const {
+      pickupLocation,
+      packageDescription,
+      dropOffLocation,
+      dropOffPhoneNumber,
+      offerAmount,
+    } = req.body;
+    const orderUUID = uuidv4();
+    //validate req body
+    const validateResult = orderRideSchema.validate(req.body, option);
+    if (validateResult.error) {
+      return res.status(400).json({
+        Error: validateResult.error.details[0].message,
+      });
+    }
+    //verify if user exist
+    const user = (await UserInstance.findOne({
+      where: { id: id },
+    })) as unknown as UserAttribute;
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+    if (user) {
+      const order = (await OrderInstance.create({
+        id: orderUUID,
+        pickupLocation,
+        packageDescription,
+        dropOffLocation,
+        dropOffPhoneNumber,
+        offerAmount,
+        paymentMethod: "",
+       orderNumber: "" + Math.floor(Math.random() * 1000000000),
+        status: "pending",
+        userId: user.id,
+      })) as unknown as OrderAttribute;
+      res.status(201).json({
+        message: "Order created successfully",
+        order,
+      });
+      if (!order) {
+        return res.status(400).json({
+          message: "Unable to create order!",
+        });
+      }
+    }
+  } catch (error) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/order-ride",
+      msg: error,
+    });
+    // console.log(error)
+  }
+};
+
+
+/*************************GET ALL ORDERS ****************************/
+export const getMyOrders = async (req: JwtPayload, res: Response) => {
+  try {
+      const { id } = req.user;
+
+      const user = await UserInstance.findOne({
+          where: {id: id} 
+      })as unknown as UserAttribute;
+
+      if(!user){
+          return res.status(400).json({
+              message: "User not found"
+          })
+      }
+
+  
+      const Orders = await OrderInstance.findAndCountAll({
+        where: {userId: user.id},
+      })
+
+
+      if(!Orders){
+          return res.status(400).json({
+              message: "No orders found"
+          })
+      }
+
+      res.status(200).json({
+          message: "Orders fetched successfully",
+          Orders,
+          count: Orders.count
+      })
+
+      
+  } catch (error) {
+      res.status(500).json({
+          Error: "Internal server Error",
+          route: "/get-all-orders",
+          msg: error,
+      });
+  }
+}
+
+
+/*************************GET ALL COMPLETED ORDERS ****************************/
+export const getMyCompletedOrders = async (req: JwtPayload, res: Response) => {
+  try {
+      const { id } = req.user;
+
+      const user = await UserInstance.findOne({
+          where: {id: id} 
+      })as unknown as UserAttribute;
+
+      if(!user){
+          return res.status(400).json({
+              message: "User not found"
+          })
+      }
+
+  
+      const completedOrders = await OrderInstance.findAndCountAll({
+        where: {userId: user.id, status: "completed"},
+      })
+
+
+      if(!completedOrders){
+          return res.status(400).json({
+              message: "No orders found"
+          })
+      }
+
+      res.status(200).json({
+          message: "Orders fetched successfully",
+          completedOrders,
+          count: completedOrders.count
+      })
+
+      
+  } catch (error) {
+      res.status(500).json({
+          Error: "Internal server Error",
+          route: "/get-all-orders",
+          msg: error,
+      });
   }
 }

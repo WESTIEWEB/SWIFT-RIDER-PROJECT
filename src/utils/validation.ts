@@ -39,7 +39,7 @@ export const registerSchema = Joi.object().keys({
   email: Joi.string().required(),
   password: Joi.string().regex(/^[a-z0-9]{3,30}$/),
   phone: Joi.string(),
-  confirmpassword: Joi.any()
+  confirm_password: Joi.any()
     .equal(Joi.ref("password"))
     .required()
     .label("Confirm password")
@@ -87,10 +87,10 @@ export const updateRiderSchema = Joi.object().keys({
     city:Joi.string()
 });
 
-export const pickUpUserSchema = Joi.object().keys({
-  pickupLocation: Joi.string().required,
-  packageDescription: Joi.string().required,
-  dropOffLocation: Joi.string().required,
-  dropOffPhonenumber: Joi.string().required,
-  offerAmount: Joi.number().required,
+export const orderRideSchema = Joi.object().keys({
+  pickupLocation: Joi.string().required(),
+  packageDescription: Joi.string().required(),
+  dropOffLocation: Joi.string().required(),
+  dropOffPhoneNumber: Joi.string().required(),
+  offerAmount: Joi.number().required(),
 });
