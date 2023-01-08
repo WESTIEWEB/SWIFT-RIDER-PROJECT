@@ -7,6 +7,7 @@ import indexRouter from './routes/index';
 import adminRouter from './routes/admin';
 import {db} from './config'
 import cors from "cors";
+import {URL, port} from './config'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -33,9 +34,8 @@ app.use('/riders', riderRouter)
 app.use('/admin', adminRouter)
 
 
-const port = 4000;
 app.listen(port, ()=>{
-    console.log(`Server running on http://localhost:${port}`)
+    console.log(`Server running on ${URL}`)
 })
 
 export default app;
