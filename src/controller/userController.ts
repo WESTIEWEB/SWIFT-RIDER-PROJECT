@@ -40,17 +40,17 @@ export const Signup = async (req: Request, res: Response) => {
       const userPhone = await UserInstance.findOne({
         where: { phone: phone}
       })
-      const isRider = await RiderInstance.findOne({ where: {email:email}})
-      const isRiderPhone = await UserInstance.findOne({
-        where: { phone: phone}
-      })
-
-
-
-
+      
+      const isRiderEmail = (await RiderInstance.findOne({
+        where: { email: email },
+      })) as unknown as RiderAttributes;
+  
+      const isRiderPhone = (await RiderInstance.findOne({
+        where: { phone: phone },
+      }))
 
       console.log('we got to this point')
-      if (!User && !userPhone && !isRider && !isRiderPhone) {
+      if (!User && !userPhone && !isRiderEmail && !isRiderPhone) {
         const user = await UserInstance.create({
           id: uuiduser,
           name,
@@ -179,7 +179,8 @@ export const Login = async (req: Request, res: Response) => {
                   id: User.id,
                   email: User.email,
                   verified: User.verified,
-                  role: User.role
+                  role: User.role,
+                  name: User.name,
               })
           }
           return res.status(400).json({
@@ -201,7 +202,8 @@ export const Login = async (req: Request, res: Response) => {
                   id: Rider.id,
                   email: Rider.email,
                   verified: Rider.verified,
-                  role: Rider.role
+                  role: Rider.role,
+                  name: Rider.name
               })
           }
           return res.status(400).json({

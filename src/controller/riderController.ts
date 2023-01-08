@@ -6,7 +6,7 @@ import {v4 as uuidv4 } from 'uuid';
 import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notification";
 import { FromAdminMail, userSubject } from "../config";
 import { OrderInstance } from "../models/orderModel";
-import { UserInstance } from "../models/userModel";
+import { UserInstance, UserAttribute } from "../models/userModel";
 //@desc Register rider
 //@route Post /rider/signup
 //@access Public
@@ -42,17 +42,19 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
       where: { phone: phone },
     }))
 
-//check user from userinstance
-const User = await UserInstance.findOne({ where: { email:email } });
-const userPhone = await UserInstance.findOne({
-        where: { phone: phone}
-      })
+    //check if user is exist in userDb
+    const isUserEmail = (await UserInstance.findOne({
+      where: { email: email}
+    })) as unknown as UserAttribute;
 
+    const isUserPhone = (await UserInstance.findOne({
+      where: { phone: phone}
+    })) as unknown as UserAttribute;
 
-    // console.log(req.files)
+    console.log(req.files)
     let images = req.files
     //create user
-    if (!riderEmail && ! riderPhone && !User && ! userPhone) {
+    if (!riderEmail && ! riderPhone && !isUserEmail && !isUserPhone) {
       let rider = await RiderInstance.create({
         id: uuidrider,
         name,
