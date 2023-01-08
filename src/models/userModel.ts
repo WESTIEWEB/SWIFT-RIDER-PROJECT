@@ -1,5 +1,8 @@
+import { Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { DataTypes, Model } from "sequelize";
 import { db } from "../config";
+import { OrderInstance } from "./orderModel";
 
 export interface UserAttribute {
   id: string;
@@ -120,3 +123,7 @@ UserInstance.init(
     tableName: "user",
   }
 );
+
+
+UserInstance.hasMany(OrderInstance, {foreignKey:'userId', as:'order'});
+OrderInstance.belongsTo(UserInstance, {foreignKey:'userId', as:'user' } );

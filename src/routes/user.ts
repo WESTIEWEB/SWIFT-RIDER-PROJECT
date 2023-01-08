@@ -1,7 +1,8 @@
 import express, {Request, Response} from 'express';
-import { Signup } from '../controller/userController';
-import { UpdateUserProfile, Login, VerifyUser, ResendOTP , forgotPassword, resetPasswordGet, resetPasswordPost} from "../controller/userController";
+// import { orderRide } from '../controller/orderController';
+import { UpdateUserProfile, Login, VerifyUser, ResendOTP , forgotPassword, resetPasswordGet, resetPasswordPost, getMyCompletedOrders, orderRide, Signup, getMyOrders } from "../controller/userController";
 import { auth } from '../middleware/authorization';
+
 
 
 const router = express.Router();
@@ -16,6 +17,11 @@ router.get('/resend-otp/:signature', ResendOTP)
 router.post('/forgotpasswordd', forgotPassword)
 router.get("/resetpasswordd/:token", resetPasswordGet)
 router.post("/resetpasswordd/:token", resetPasswordPost)
+
+//
+router.post("/order-ride/", auth, orderRide);
+router.get("/completed-orders", auth, getMyCompletedOrders);
+router.get("/my-orders", auth, getMyOrders);
 
 
 export default router;

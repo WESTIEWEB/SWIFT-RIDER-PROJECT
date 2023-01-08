@@ -1,23 +1,25 @@
 import { DataTypes, Model } from "sequelize";
 import { db } from "../config";
-export interface PickUpUserAttribute {
+export interface OrderAttribute {
   id: string;
   pickupLocation: string;
   packageDescription: string;
   dropOffLocation: string;
-  dropOffPhonenumber: string;
-  offerAmount: Number;
+  dropOffPhoneNumber: string;
+  offerAmount: number;
   paymentMethod: string;
+  orderNumber: string;
   status: string;
   userId: string;
 }
-export class PickUpUserInstance extends Model<PickUpUserAttribute> {}
-PickUpUserInstance.init(
+export class OrderInstance extends Model<OrderAttribute> {}
+OrderInstance.init(
   {
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false,
+      unique: true,
     },
     pickupLocation: {
       type: DataTypes.STRING,
@@ -55,7 +57,7 @@ PickUpUserInstance.init(
         },
       },
     },
-    dropOffPhonenumber: {
+    dropOffPhoneNumber: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
@@ -68,12 +70,16 @@ PickUpUserInstance.init(
       },
     },
     offerAmount: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     paymentMethod: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    orderNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     status: {
       type: DataTypes.STRING,
