@@ -5,7 +5,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import {v4 as uuidv4 } from 'uuid';
 import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notification";
 import { FromAdminMail, userSubject } from "../config";
-import { OrderInstance } from "../models/orderModel";
+import { OrderInstance, OrderAttribute } from "../models/orderModel";
 import { UserInstance, UserAttribute } from "../models/userModel";
 //@desc Register rider
 //@route Post /rider/signup
@@ -342,7 +342,73 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
   }
 };
 
+/**============================ Rider  Accept Bid======================== */
+export const RiderAcceptBid = async (req: JwtPayload, res: Response) => {
+  try{
+    const id = req.params.id;
+    const riderID = req.rider.id;
+  
+  const Rider =(await RiderInstance.findOne({where:{id:riderID},
+    
+  })) as unknown as RiderAttributes;
+  
+    if(Rider){
+      const updateOrder = await OrderInstance.update({status:"accepted", riderId: riderID },{where:{id:id}});
+      if(updateOrder){
+        return res.status(200).json({
+          message:"Request Accepted successfully",
+          updateOrder
+        })
+      }
+    }
+    return res.status(400).json({
+      Error:"Error accepting Your Request"
+    })
+  }catch(err){
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/rider/accept-bid/:id",
+      message: err,
+    });
+  }
+}
 
+export const getOrderById = async (req: JwtPayload, res: Response) => { 
+  try {
+    const id = req.params.id;
+    const riderId = req.rider.id;
+
+    const rider = await RiderInstance.findOne({
+      where: { id: riderId },
+    }) as unknown as RiderAttributes;
+
+    if (rider) {
+      const order = await OrderInstance.findOne({
+        where: { id: id },
+      }) as unknown as OrderAttribute;
+
+      if (order) {
+        return res.status(200).json({
+          message: "Order retrieved successfully",
+          order,
+        });
+      }
+    }
+
+    return res.status(400).json({
+      Error: "Not authorized"
+    });
+
+
+
+
+  } catch(err){
+    return res.status(500).json({
+      Error: "Internal server Error",
+      route: "/rider/get-order-by-id/:id",
+    });
+  }
+};
 /**============================Rider Dashboard=========================== **/
 // export const RiderDashboard = async (req: JwtPayload, res: Response) => {
 //   try {
