@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize} from 'sequelize'
 //import {v4 as uuidv4 } from 'uuid';
 import {db} from '../config'
+import { OrderInstance } from './orderModel';
 export interface RiderAttributes{
     id: string;
     email:string;
@@ -142,5 +143,15 @@ RiderInstance.init({
         tableName:'rider'
     }
 );
+
+RiderInstance.hasMany(OrderInstance, {
+    foreignKey: "riderId",
+    as: "order"
+ })
+
+OrderInstance.belongsTo(RiderInstance, {
+        foreignKey: "riderId",
+        as: "rider"
+    })
 
 

@@ -1,5 +1,5 @@
 import express, {Request, Response} from 'express';
-import {login, registerRider, updateRiderProfile, VerifyUser, ResendOTP, getAllBiddings, acceptBid} from "../controller/riderController"
+import {login, registerRider, updateRiderProfile, VerifyUser, ResendOTP, getAllBiddings, acceptBid, RiderHistory} from "../controller/riderController"
 import { authRider } from '../middleware/authorization'
 import { upload } from '../utils/multer'
 
@@ -15,4 +15,5 @@ router.get('/resend-otp/:signature', ResendOTP)
   
 router.get("/all-biddings", getAllBiddings);
 router.patch("/accept-bid", authRider, acceptBid);
+router.get("/rider-history",authRider, RiderHistory);
 export default router;

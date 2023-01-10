@@ -100,3 +100,8 @@ export const emailHtml2 = (link:string):string=>{
     `
     return response
 }
+
+export const randomDriver = (length:any) => {
+  const random = Math.floor(Math.random() * length)
+  return random
+}
