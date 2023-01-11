@@ -476,7 +476,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       });
     }
     if (user) {
-      const order = (await OrderInstance.create({
+      const order = await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
         packageDescription,
@@ -484,11 +484,11 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         dropOffPhoneNumber,
         offerAmount,
         paymentMethod: "",
-       orderNumber: "" + Math.floor(Math.random() * 1000000000),
+        orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
-        userId: user.id,
-      })) as unknown as OrderAttribute;
-      res.status(201).json({
+        userId: user.id
+      }) as unknown as OrderAttribute;
+      return res.status(201).json({
         message: "Order created successfully",
         order,
       });
@@ -498,8 +498,11 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         });
       }
     }
+    return res.status(400).json({
+      Error: "user not found"
+    })
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       Error: "Internal server Error",
       route: "/order-ride",
       msg: error,

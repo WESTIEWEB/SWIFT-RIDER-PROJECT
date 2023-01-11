@@ -35,7 +35,7 @@ app.use('/admin', adminRouter)
 
 
 app.listen(port, ()=>{
-    console.log(`Server running on ${URL}`)
+    console.log(`Server running on ${URL}:${port}`)
 })
 
 export default app;

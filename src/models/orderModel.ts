@@ -11,6 +11,7 @@ export interface OrderAttribute {
   orderNumber: string;
   status: string;
   userId: string;
+  riderId?: string;
 }
 export class OrderInstance extends Model<OrderAttribute> {}
 OrderInstance.init(
@@ -88,6 +89,10 @@ OrderInstance.init(
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
+    },
+    riderId: {
+      type: DataTypes.UUID,
+      allowNull: true,
     },
   },
   {
