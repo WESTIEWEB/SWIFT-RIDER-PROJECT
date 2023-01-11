@@ -17,6 +17,7 @@ export interface RiderAttributes{
     otp_expiry: Date;
     lng:number;
     lat: number;
+    plateNumber:string;
     verified:boolean;
     role:string;
 }
@@ -121,6 +122,10 @@ RiderInstance.init({
             },
         }
     },
+    plateNumber: {
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
     lat: {
         type:DataTypes.INTEGER,
         allowNull:true,
@@ -153,5 +158,6 @@ OrderInstance.belongsTo(RiderInstance, {
         foreignKey: "riderId",
         as: "rider"
     })
+
 
 

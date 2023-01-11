@@ -18,7 +18,8 @@ export const riderRegisterSchema = Joi.object().keys({
   city: Joi.string(),
   documents: Joi.string(),
   validID: Joi.string(),
-  passport: Joi.string()
+  passport: Joi.string(),
+  plateNumber: Joi.string().required()
 });
 //Riders login
 export const loginSchema = Joi.object().keys({
