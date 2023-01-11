@@ -1,33 +1,15 @@
-import express, { Request, Response } from "express";
-import { UserAttribute, UserInstance } from "../models/userModel";
-import {
-  GeneratePassword,
-  GenerateSalt,
-  registerSchema,
-  GenerateSignature,
-  option,
-  editProfileSchema,
-  validatePassword,
-  loginSchema,
-  verifySignature,
-  forgotPasswordSchema,
-  resetPasswordSchema,
-  orderRideSchema,
-} from "../utils/validation";
-import {
-  onRequestOTP,
-  GenerateOTP,
-  emailHtml,
-  mailSent,
-  mailSent2,
-  emailHtml2,
-} from "../utils/notification";
-import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from "../config";
-import { RiderAttributes, RiderInstance } from "../models/riderModel";
-import { OrderAttribute, OrderInstance } from "../models/orderModel";
+
+import express, {Request, Response} from 'express'
+import { UserAttribute, UserInstance } from '../models/userModel';
+import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature, option, editProfileSchema, validatePassword, loginSchema, verifySignature, forgotPasswordSchema, resetPasswordSchema, orderRideSchema} from "../utils/validation";
+import {  onRequestOTP , GenerateOTP, emailHtml, mailSent, mailSent2, emailHtml2, randomDriver} from "../utils/notification";
+import bcrypt from 'bcrypt'
+import {v4 as uuidv4} from 'uuid'
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
+import { RiderAttributes, RiderInstance } from '../models/riderModel';
+import { OrderAttribute, OrderInstance } from '../models/orderModel';
+
 
 export const Signup = async (req: Request, res: Response) => {
   try {
@@ -502,8 +484,16 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         message: "User not found",
       });
     }
+    console.log(user)
     if (user) {
-      const order = await OrderInstance.create({
+      const riderCount = await RiderInstance.findAndCountAll()
+      const length = riderCount.count
+
+      const allRider = await RiderInstance.findAll()
+      const selectedRider = allRider[randomDriver(length)]
+      const order = (await OrderInstance.create({
+
+ 
         id: orderUUID,
         pickupLocation,
         packageDescription,
@@ -513,10 +503,12 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         paymentMethod: "",
         orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
-        userId: user.id
-      }) as unknown as OrderAttribute;
-      return res.status(201).json({
-        message: "Order created successfully",
+        dateCreated: new Date(),
+        userId: user.id,
+        riderId: selectedRider.dataValues.id,
+      })) as unknown as OrderAttribute;
+      res.status(201).json({
+   message: "Order created successfully",
         order,
       });
       

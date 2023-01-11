@@ -149,5 +149,15 @@ RiderInstance.init({
     }
 );
 
-RiderInstance.hasMany(OrderInstance, {foreignKey:'riderId', as:'order'});
-OrderInstance.belongsTo(RiderInstance, {foreignKey:'riderId', as:'rider' } );
+RiderInstance.hasMany(OrderInstance, {
+    foreignKey: "riderId",
+    as: "order"
+ })
+
+OrderInstance.belongsTo(RiderInstance, {
+        foreignKey: "riderId",
+        as: "rider"
+    })
+
+
+
