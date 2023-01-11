@@ -93,7 +93,7 @@ OrderInstance.init(
     riderId: {
       type: DataTypes.UUID,
       allowNull: true,
-    }
+    },
   },
   {
     sequelize: db,

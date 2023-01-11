@@ -12,8 +12,8 @@ import { UserInstance, UserAttribute } from "../models/userModel";
 //@access Public
 export const registerRider = async (req: JwtPayload, res: Response, next:NextFunction) => {
   try {
-    const { name, email, password, confirmPassword, phone, city, passport, validId, documents } = req.body;
-
+    const { name, email, password, confirmPassword, phone, city, passport, validId, documents, plateNumber } = req.body;
+    console.log(req.body)
     const uuidrider = uuidv4();
 
     const validateResult = riderRegisterSchema.validate(req.body, option);
@@ -29,7 +29,6 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
 
     //generate password
     const userPassword = await GeneratePassword(password, salt);
-
     //Generate OTP
     const { otp, expiry } = GenerateOTP();
 
@@ -67,6 +66,7 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
         city,
         passport: images[2].path,
         otp,
+        plateNumber,
         otp_expiry: expiry,
         lng: 0,
         lat: 0,
@@ -83,7 +83,7 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
       const Rider = (await RiderInstance.findOne({
         where: { email: email },
       })) as unknown as RiderAttributes;
-
+      
     
       let signature = await GenerateSignature({
         id: Rider.id,
@@ -99,7 +99,6 @@ export const registerRider = async (req: JwtPayload, res: Response, next:NextFun
     }
     return res.status(400).json({ message: "Rider already exist" });
 
-    console.log(userPassword);
   } catch (err: any) {
     res.status(500).json({
       Error: "E NO DEY WORK",
@@ -341,30 +340,63 @@ export const getAllBiddings = async (req: JwtPayload, res: Response) => {
   }
 };
 
+//==============accept bid==================\\
+// export const acceptBid = async (req: JwtPayload, res: Response) => {
+//   try {
+//     const { id } = req.user;
 
-/**============================ Rider  Accept Bid======================== */
-export const RiderAcceptBid = async (req: JwtPayload, res: Response) => {
-  try{
-    const id = req.params.id;
-    const riderID = req.rider.id;
-  
-  const Rider =(await RiderInstance.findOne({where:{id:riderID},
-    
-  })) as unknown as RiderAttributes;
-  
-    if(Rider){
-      const updateOrder = await OrderInstance.update({status:"accepted", riderId: riderID },{where:{id:id}});
-      if(updateOrder){
-        return res.status(200).json({
-          message:"Request Accepted successfully",
-          updateOrder
-        })
+//     const bidding = await OrderInstance.findOne({ where: { id: id } });
+
+//     if (bidding) {
+//       const updatedBidding = await OrderInstance.update(
+//         { status: "accepted" },
+//         { where: { id: id } }
+//       );
+
+//       if (updatedBidding) {
+//         return res
+//           .status(200)
+//           .json({ message: "Rider has accepted your order" });
+//       }
+//     }
+//   } catch (err) {
+//     res.status(500).json({
+//       Error: "Internal server Error",
+//       route: "/accept-bid",
+//       message: err,
+//     });
+//   }
+// };
+
+//============== Rider accept bid==================\\
+export const acceptBid = async (req: JwtPayload, res: Response) => {
+  try {
+    const { id } = req.rider;
+    const { orderId } = req.params;
+
+    const rider = await RiderInstance.findOne({ where: { id: id } });
+
+    if (rider) {
+      const updatedBidding = await OrderInstance.update(
+        { status: "accepted" ,
+        riderId: id},
+        { where: { id: orderId } }
+      );
+
+      if (updatedBidding) {
+        return res.status(200).json({ message: "Rider has accepted your order",
+        rider },
+          );
       }
+      return res.status(400).json({
+        Error: "Error accepting bid",
+      })
     }
     return res.status(400).json({
-      Error:"Error accepting Your Request"
+      Error: "You are not authorised to view this page",
     })
-  }catch(err){
+
+  } catch (err) {
     res.status(500).json({
       Error: "Internal server Error",
       route: "/rider/accept-bid/:id",
@@ -377,11 +409,7 @@ export const getOrderById = async (req: JwtPayload, res: Response) => {
   try {
     const id = req.params.id;
     const riderId = req.rider.id;
-
-    const rider = await RiderInstance.findOne({
-      where: { id: riderId },
-    }) as unknown as RiderAttributes;
-
+    const rider = await RiderInstance.findOne({ where: { id: riderId } }) as unknown as RiderAttributes;
     if (rider) {
       const order = await OrderInstance.findOne({
         where: { id: id },
@@ -409,6 +437,47 @@ export const getOrderById = async (req: JwtPayload, res: Response) => {
     });
   }
 };
+
+/** ============= Get Rider Profile  =====================*/
+export const getRiderProfile = async (req: Request, res: Response) => {
+  try {
+    const { riderId } = req.params;
+    const order = await OrderInstance.findOne({ where: { riderId: riderId },
+      include: [
+        {
+            model: RiderInstance,
+            as: 'rider',
+            attributes: [
+                "id",
+                "name",
+                "phone",
+                "plateNumber",
+                "passport"
+               
+            ]
+        }
+    ]
+    });
+    if (order) {
+      return res.status(200).json({
+        message: "You have successfully retrieved your profile",
+        order,
+      });
+    }
+    return res.status(400).json({
+      Error: "Error retrieving profile",
+    });
+  } catch (err) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/rider-order-profile",
+      message: err,
+    });
+  }
+}
+
+
+
 /**============================Rider Dashboard=========================== **/
 // export const RiderDashboard = async (req: JwtPayload, res: Response) => {
 //   try {

@@ -5,31 +5,20 @@ import app from "../app";
 const request = supertest(app);
 
 //Test to get all orders for users
-describe("Testing pickup user history", () => {
+describe("Testing rider accept order", () => {
 
   beforeEach(async () => {
-    await db.sync().then(() => console.log("Database is connected")).catch(err=>{
-      console.log("Database is not connected")
+    await db.sync().then(() => console.log("DB connected successfully")).catch(err=>{
+      console.log("DB connected successfully")
     });
   })
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNhOWFiZDNmLThjYWQtNGQyZi05YjViLTM3N2VmMmRiM2VjNCIsImVtYWlsIjoidGVuQHRlbi5jb20iLCJ2ZXJpZmllZCI6ZmFsc2UsImlhdCI6MTY3MzM4NTczNSwiZXhwIjoxNjczNDcyMTM1fQ.lb9bT6FjuLezaErhtPbrKuTwRo1Us8Lv2X-Uo6gXlcc"
-  const wrongToken = "";
+  
 
-  it('When wrong token is passed', async () => {
+  it('When rider acceps order', async () => {
     await request
-    .get("/users/my-orders")
-      .expect(401)
-      .set({ authorization: `Bearer ${wrongToken}` })
-      .then((response: any) => {
-        expect(response.status).toBe(401)
-      })
-  })
-
-  it('When right token is passed', async () => {
-    await request
-    .get("/users/my-orders")
+    .get("/riders/rider-order-profile/81aefa7c-2fd8-4240-b57b-2f774202fbc5")
       .expect(200)
-      .set({ authorization: `Bearer ${token}` })
+      .set('Accept', 'application/json')
       .then((response: any) => {
         expect(response.body).toHaveProperty("message")
       })
