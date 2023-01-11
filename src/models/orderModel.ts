@@ -11,10 +11,9 @@ export interface OrderAttribute {
   orderNumber: string;
   status: string;
   userId: string;
-
   dateCreated: Date;
   riderId?: string;
-
+}
 export class OrderInstance extends Model<OrderAttribute> {}
 OrderInstance.init(
   {

@@ -464,6 +464,8 @@ export const RiderHistory = async (req: JwtPayload, res: Response) => {
       route: "/riders/rider-history",
       err: err
     })
+  }
+}
 
 /** ============= Get Rider Profile  =====================*/
 export const getRiderProfile = async (req: Request, res: Response) => {
@@ -485,6 +487,7 @@ export const getRiderProfile = async (req: Request, res: Response) => {
         }
     ]
     });
+    
     if (order) {
       return res.status(200).json({
         message: "You have successfully retrieved your profile",
@@ -499,49 +502,6 @@ export const getRiderProfile = async (req: Request, res: Response) => {
       Error: "Internal server Error",
       route: "/rider-order-profile",
       message: err,
-    });
-
+    })
   }
 }
-
-
-/**============================Rider Dashboard=========================== **/
-// export const RiderDashboard = async (req: JwtPayload, res: Response) => {
-//   try {
-//       const id = req.rider.id;
-//       const Rider = await RiderInstance.findOne({ where: { id: id } }) as unknown as RiderAttributes;
-//       if (!Rider) {
-//           return res.status(400).json({
-//               Error: "You are not authorised to view this page"
-//           })
-//       }
-//       const { count: totalOrders } = await OrderInstance.findAndCountAll({
-//           where: { rider_id: id }
-//       });
-//       const { count: totalDelivered } = await OrderInstance.findAndCountAll({
-//           where: { rider_id: id, status: "delivered" }
-//       });
-//       const { count: totalCancelled } = await OrderInstance.findAndCountAll({
-//           where: { rider_id: id, status: "cancelled" }
-//       });
-//       const { count: totalPending } = await OrderInstance.findAndCountAll({
-//           where: { rider_id: id, status: "pending" }
-//       })
-//       else {
-//           return res.status(400).json({
-//               Error: "Error fetching data"
-//           })
-//       }
-//       return res.status(200).json({
-//           totalOrders,
-//           totalDelivered,
-//           totalCancelled,
-//           totalPending
-//       })
-//   } catch (err) {
-//       return res.status(500).json({
-//           Error: "Internal server Error",
-//           route: "/riders/dashboard"
-//       })
-//   }
-// }
