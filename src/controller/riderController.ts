@@ -348,63 +348,16 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
 /**============================Rider History=========================== **/
 export const RiderHistory = async (req: JwtPayload, res: Response) => {
   try {
-    const Rider = await RiderInstance.findOne({ where: { id: req.rider.id } });
     const id = req.rider.id;
+    const Rider = await RiderInstance.findOne({ where: { id: req.rider.id } });
     if (Rider) {
-      const history = await OrderInstance.findOne({
-        attributes: {
-          include: [
-            "dropOffLocation",
-            "dropOffPhoneNumber",
-            "status",
-            "dateCreated"
-          ],
-          exclude: [
-            "id",
-            "pickupLocation",
-            "packageDescription",
-            "offerAmount",
-            "paymentMethod",
-            "orderNumber",
-            "userId",
-            "riderId",
-            "createdAt",
-            "updatedAt"
-          ]
-        }
-        // RiderInstance.findOne({
-        //   where: { id: id},
-        //   attributes: {exclude: [
-        //   "id",
-        //   "email",
-        //   "password",
-        //   "name",
-        //   "city",
-        //   "salt",
-        //   "validID",
-        //   "passport",
-        //   "document",
-        //   "phone",
-        //   "otp",
-        //   "otp_expiry",
-        //   "lng",
-        //   "lat",
-        //   "verified",
-        //   "role",
-        //   "documents",
-        //   "createdAt",
-        //   "updatedAt"
-        // ]},
-        //   include: [{
-        //       model: OrderInstance,
-        //       as: "orders",
-        //       attributes: [
-        //         "dropOffLocation",
-        //         "dropOffPhoneNumber",
-        //         "status",
-        //         "dateCreated"
-        //         ]
-        //   }]
+      const history = await RiderInstance.findAll({
+        where: { id: id },
+        include: [{
+          model: OrderInstance,
+          as: "order",
+          attributes: ["dropOffLocation", "dropOffPhoneNumber", "status", "dateCreated"]
+        }]
       }) as unknown as RiderAttributes;
       return res.status(200).json({
         history
@@ -413,7 +366,8 @@ export const RiderHistory = async (req: JwtPayload, res: Response) => {
   } catch (err) {
     return res.status(500).json({
       Error: "Internal server Error",
-      route: "/riders/rider-history"
+      route: "/riders/rider-history",
+      err: err
     })
   }
 }
