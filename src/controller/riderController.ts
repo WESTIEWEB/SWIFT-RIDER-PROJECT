@@ -151,6 +151,40 @@ export const login = async (req: JwtPayload,res: Response) => {
     });
   }
 };
+
+export const getUserOrderById = async (req:JwtPayload, res:Response) => {
+  try {
+    const { id } = req.rider;
+    
+    const {orderId} = req.params;
+
+    const rider = await RiderInstance.findOne({
+      where: {id:id} 
+  }) as unknown as RiderAttributes;
+
+    if(orderId) {
+      const myOrder = await OrderInstance.findOne({
+        where: { id: orderId}
+      })
+
+      return res.status(200).json({
+        message: "successfully fetched order by Id",
+        myOrder
+      })
+    }
+
+    return res.status(401).json({
+      Error: "user not authorized"
+    })
+
+  } catch(err) {
+    return res.status(500).json({
+      Error: "internal server error",
+      route: "riders/get-order-byId/"
+    })
+  }
+}
+
 export const updateRiderProfile = async(req: JwtPayload, res: Response)=>{
   try{
       const id = req.rider.id;
@@ -324,7 +358,6 @@ export const RiderAcceptBid = async (req: JwtPayload, res: Response) => {
     const riderID = req.rider.id;
   
   const Rider =(await RiderInstance.findOne({where:{id:riderID},
-    
   })) as unknown as RiderAttributes;
   
     if(Rider){
