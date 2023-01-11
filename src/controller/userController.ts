@@ -116,8 +116,9 @@ export const Signup = async (req: Request, res: Response) => {
 
 export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
   try {
-    const token = req.params.id;
-    const { id } = await verifySignature(token);
+    const token = req.params.id
+    console.log("This is the token", token)
+    const { id } = await verifySignature(token) 
     const { name, phone, email } = req.body;
     const validateResult = editProfileSchema.validate(req.body, option);
     if (validateResult.error) {
