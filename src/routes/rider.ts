@@ -15,5 +15,6 @@ router.get('/resend-otp/:signature', ResendOTP)
   
 router.get("/all-biddings", getAllBiddings);
 router.patch("/rider-accept-bid/:id", authRider, RiderAcceptBid)
-router.get("/get-order-byId/:orderId", authRider, getUserOrderById)
+router.get('/get-order-byId/:orderId', authRider, getUserOrderById)
+
 export default router;
