@@ -161,7 +161,7 @@ export const getUserOrderById = async (req:JwtPayload, res:Response) => {
       where: {id:id} 
   }) as unknown as RiderAttributes;
 
-    if(orderId) {
+    if(rider) {
       const myOrder = await OrderInstance.findOne({
         where: { id: orderId}
       })

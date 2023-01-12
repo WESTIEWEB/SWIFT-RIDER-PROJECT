@@ -1,4 +1,4 @@
-import express, {Request, Response} from 'express';
+import express from 'express';
 import {login, registerRider, updateRiderProfile, VerifyUser, ResendOTP, getAllBiddings, acceptBid, RiderHistory, getRiderProfile, getUserOrderById} from "../controller/riderController"
 import { authRider } from '../middleware/authorization'
 import { upload } from '../utils/multer'
@@ -14,7 +14,6 @@ router.post('/verify/:signature', VerifyUser)
 router.get('/resend-otp/:signature', ResendOTP)
 
 router.get('/rider-order-profile/:riderId', getRiderProfile)
-  
 router.get("/all-biddings", getAllBiddings);
 router.get("/rider-history",authRider, RiderHistory);
 

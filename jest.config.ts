@@ -1,19 +1,15 @@
-// export default{
-//     clearMocks: true,
-//     collectCoverage:true,
-//     coverageDirectory:'coverage',
-//     coveragePathIgnorePatterns:['/node_modules/'],
-//     coverageProvider:'v8',
-//     root:['<roots>/src/'],
-//     preset:"ts-jest",
-//     testEnvironment:"jest-environment-node",
-//     testMatch:['**/_test_/**/*.ts'],
-// }
-
-module.exports = {
-    preset: 'ts-jest',
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+export default {
+    clearMocks: true,
+    coverageProvider: "v8",
+    moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json","node"],
+    roots: ["<rootDir>/src"],
+    testMatch: ["**/__test__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[tj]s?(x)"],
+    transform: {
+      "^.+\\.(ts|tsx)$": "ts-jest",
+    },
     testEnvironment: 'node',
-    testMatch: ["**/**/*.test.ts"],
+    preset: 'ts-jest',
     verbose: true,
     forceExit: true,
     // clearMocks: true

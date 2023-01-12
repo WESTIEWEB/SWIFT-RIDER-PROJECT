@@ -486,11 +486,11 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
     }
     console.log(user)
     if (user) {
-      const riderCount = await RiderInstance.findAndCountAll()
-      const length = riderCount.count
+      // const riderCount = await RiderInstance.findAndCountAll()
+      // const length = riderCount.count
 
-      const allRider = await RiderInstance.findAll()
-      const selectedRider = allRider[randomDriver(length)]
+      // const allRider = await RiderInstance.findAll()
+      // const selectedRider = allRider[randomDriver(length)]
       const order = (await OrderInstance.create({
 
  
@@ -505,9 +505,8 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         status: "pending",
         dateCreated: new Date(),
         userId: user.id,
-        riderId: selectedRider.dataValues.id,
       })) as unknown as OrderAttribute;
-      res.status(201).json({
+      return res.status(201).json({
    message: "Order created successfully",
         order,
       });
