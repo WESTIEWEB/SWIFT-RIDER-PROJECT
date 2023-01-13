@@ -66,12 +66,12 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
         city,
         passport: images[2].path,
         otp,
-        plateNumber,
         otp_expiry: expiry,
         lng: 0,
         lat: 0,
         verified: false,
         role: 'rider',
+        plateNumber
       })
       //send OTP
       //await onRequestOTP(otp, phone);
@@ -100,7 +100,7 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
 
   } catch (err: any) {
     res.status(500).json({
-      Error: "E NO DEY WORK",
+      Error: "Internal Server error",
       message: err.stack,
       route: "/riders/signup",
       err
@@ -152,28 +152,31 @@ export const login = async (req: JwtPayload, res: Response) => {
 };
 
 export const getUserOrderById = async (req:JwtPayload, res:Response) => {
-    try {
-      const { id } = req.rider;
-          const {orderId} = req.params;
-      const rider = await RiderInstance.findOne({
-        where: {id:id}
-    }) as unknown as RiderAttributes;
-      if(orderId) {
-        const myOrder = await OrderInstance.findOne({
-          where: { id: orderId}
-        })
-        return res.status(200).json({
-          message: "successfully fetched order by Id",
-          myOrder      })
-      }
-      return res.status(401).json({
-        Error: "user not authorized"    })
-    } catch(err) {
-      return res.status(500).json({
-        Error: "internal server error",
-        route: "riders/get-order-byId/"    })
-    }
+  try {
+    const { id } = req.rider;
+    const {orderId} = req.params;
+    const rider = await RiderInstance.findOne({
+      where: {id:id}
+    }) as unknown as RiderAttributes;
+
+    if(orderId) {
+      const myOrder = await OrderInstance.findOne({
+      where: { id: orderId}
+      })
+      return res.status(200).json({
+        message: "successfully fetched order by Id",
+        myOrder
+      })
+    }
+    return res.status(401).json({
+      Error: "user not authorized"
+    })
+  } catch(err) {
+     return res.status(500).json({
+     Error: "internal server error",
+     route: "riders/get-order-byId/" })
   }
+}
 
 export const updateRiderProfile = async(req: JwtPayload, res: Response)=>{
   try{
@@ -341,35 +344,7 @@ export const getAllBiddings = async (req: JwtPayload, res: Response) => {
   }
 };
 
-//==============accept bid==================\\
-// export const acceptBid = async (req: JwtPayload, res: Response) => {
-//   try {
-//     const { id } = req.user;
-
-//     const bidding = await OrderInstance.findOne({ where: { id: id } });
-
-//     if (bidding) {
-//       const updatedBidding = await OrderInstance.update(
-//         { status: "accepted" },
-//         { where: { id: id } }
-//       );
-
-//       if (updatedBidding) {
-//         return res
-//           .status(200)
-//           .json({ message: "Rider has accepted your order" });
-//       }
-//     }
-//   } catch (err) {
-//     res.status(500).json({
-//       Error: "Internal server Error",
-//       route: "/accept-bid",
-//       message: err,
-//     });
-//   }
-// };
-
-//============== Rider accept bid==================\\
+//============== Rider accept bid==================//
 export const acceptBid = async (req: JwtPayload, res: Response) => {
   try {
     const { id } = req.rider;
@@ -427,9 +402,6 @@ export const getOrderById = async (req: JwtPayload, res: Response) => {
     return res.status(400).json({
       Error: "Not authorized"
     });
-
-
-
 
   } catch(err){
     return res.status(500).json({

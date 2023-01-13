@@ -492,8 +492,6 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       const allRider = await RiderInstance.findAll()
       const selectedRider = allRider[randomDriver(length)]
       const order = (await OrderInstance.create({
-
- 
         id: orderUUID,
         pickupLocation,
         packageDescription,
@@ -504,10 +502,9 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
         dateCreated: new Date(),
-        userId: user.id,
-        riderId: selectedRider.dataValues.id,
+        userId: user.id
       })) as unknown as OrderAttribute;
-      res.status(201).json({
+      return res.status(201).json({
    message: "Order created successfully",
         order,
       });
@@ -520,7 +517,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
     return res.status(500).json({
       Error: "Internal server Error",
       route: "/order-ride",
-      msg: error,
+      message: error,
     });
     // console.log(error)
   }
@@ -553,7 +550,7 @@ export const getMyOrders = async (req: JwtPayload, res: Response) => {
 
     res.status(200).json({
       message: "Orders fetched successfully",
-      Orders,
+      rows: Orders.rows,
       count: Orders.count,
     });
   } catch (error) {

@@ -9,10 +9,7 @@
     "lint": "eslint --ext .ts src",
     "lint:fix": "eslint --ext .ts src --fix",
     "precommit": "npm run lint",
-
     "test": "jest --detectOpenHandles"
-
-    "test": "jest --watchAll --detectOpenHandles"
 
   },
   "devDependencies": {

@@ -15,11 +15,11 @@ export const riderRegisterSchema = Joi.object().keys({
   password: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")),
   confirmPassword: Joi.string().pattern(new RegExp("^[a-zA-Z0-9]{3,30}$")),
   phone: Joi.string().required(),
-  city: Joi.string(),
+  city: Joi.string().required(),
   documents: Joi.string(),
   validID: Joi.string(),
   passport: Joi.string(),
-  plateNumber: Joi.string().required()
+  plateNumber: Joi.string().required(),
 });
 //Riders login
 export const loginSchema = Joi.object().keys({

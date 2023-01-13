@@ -17,7 +17,7 @@ export interface RiderAttributes{
     otp_expiry: Date;
     lng:number;
     lat: number;
-    plateNumber:string;
+    plateNumber?:string;
     verified:boolean;
     role:string;
 }
