@@ -633,3 +633,65 @@ export const updatePaymentMethod = async (req: JwtPayload, res: Response) => {
     });
   }
 };
+
+//================================GET SINGLE ORDER ==========================\\
+export const getOrder = async (req: JwtPayload, res: Response) => {
+  try {
+    const {ids} = req.params;
+ 
+    const Order = await OrderInstance.findOne({
+      where: { id: ids },
+    });
+ 
+    if (!Order) {
+      return res.status(400).json({
+        message: "No order found",
+      });
+    }
+console.log(Order);
+    res.status(200).json({
+      message: "Order fetched successfully",
+      Order
+    });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/get-order",
+      msg: error
+    });
+  }
+};
+
+/******************   Delete Order By Id *********************/
+
+export const deleteOrder = async (req:JwtPayload, res:Response) => {
+  try {
+    const {userId} = req.user
+    const {id} = req.params;
+
+    const User = await UserInstance.findOne({
+      where: {id: userId}
+    }) as unknown as UserAttribute;
+
+    if(User) {
+      const order = await OrderInstance.destroy({
+        where: {id : id}
+      })
+
+      return res.status(200).json({
+        message: "Order deleted successfully"
+      })
+    }
+    return res.status(404).json({
+      Error: "User not found"
+    });
+
+  } catch(err) {
+    return res.status(500).json({
+      Error: "Internal server error",
+      message: err,
+      route: "users/delete-order"
+    })
+  }
+}
