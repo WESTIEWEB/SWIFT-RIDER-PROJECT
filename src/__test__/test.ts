@@ -12,7 +12,7 @@ describe("Testing pickup user history", () => {
       console.log("Database is not connected")
     });
   })
-  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNhOWFiZDNmLThjYWQtNGQyZi05YjViLTM3N2VmMmRiM2VjNCIsImVtYWlsIjoidGVuQHRlbi5jb20iLCJ2ZXJpZmllZCI6ZmFsc2UsImlhdCI6MTY3MzM4NTczNSwiZXhwIjoxNjczNDcyMTM1fQ.lb9bT6FjuLezaErhtPbrKuTwRo1Us8Lv2X-Uo6gXlcc"
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNhOWFiZDNmLThjYWQtNGQyZi05YjViLTM3N2VmMmRiM2VjNCIsImVtYWlsIjoidGVuQHRlbi5jb20iLCJ2ZXJpZmllZCI6ZmFsc2UsImlhdCI6MTY3MzU5NjE5NiwiZXhwIjoxNjczNjgyNTk2fQ.6qEI1Jc_-LtKTa36MzlucOEmZ4twOiytHif4VYJ_sNw"
   const wrongToken = "";
 
   it('When wrong token is passed', async () => {
