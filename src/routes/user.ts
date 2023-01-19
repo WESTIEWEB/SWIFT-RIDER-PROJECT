@@ -13,6 +13,8 @@ import {
   orderRide,
   Signup,
   getMyOrders,
+  getOrder,
+  deleteOrder
 } from "../controller/userController";
 import { auth } from "../middleware/authorization";
 
@@ -34,5 +36,7 @@ router.post("/order-ride/", auth, orderRide);
 router.get("/completed-orders", auth, getMyCompletedOrders);
 router.get("/my-orders", auth, getMyOrders);
 router.patch("/updatePaymentMethod/:id", auth, updatePaymentMethod);
+router.get("/my-order/:ids", getOrder);
+router.delete("delete-order/:id", auth, deleteOrder);
 
 export default router;

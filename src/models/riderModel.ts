@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize} from 'sequelize'
 //import {v4 as uuidv4 } from 'uuid';
 import {db} from '../config'
+import { OrderInstance } from './orderModel';
 export interface RiderAttributes{
     id: string;
     email:string;
@@ -16,6 +17,7 @@ export interface RiderAttributes{
     otp_expiry: Date;
     lng:number;
     lat: number;
+    plateNumber?:string;
     verified:boolean;
     role:string;
 }
@@ -120,6 +122,10 @@ RiderInstance.init({
             },
         }
     },
+    plateNumber: {
+        type:DataTypes.STRING,
+        allowNull:false,
+    },
     lat: {
         type:DataTypes.INTEGER,
         allowNull:true,
@@ -142,5 +148,16 @@ RiderInstance.init({
         tableName:'rider'
     }
 );
+
+RiderInstance.hasMany(OrderInstance, {
+    foreignKey: "riderId",
+    as: "order"
+ })
+
+OrderInstance.belongsTo(RiderInstance, {
+        foreignKey: "riderId",
+        as: "rider"
+    })
+
 
 
