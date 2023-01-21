@@ -466,3 +466,81 @@ export const getRiderProfile = async (req: Request, res: Response) => {
 }
 
 
+
+/**==================Delivery OTP==================== **/
+export const DeliveryOtp = async (req: Request, res: Response) => {
+  try {
+    const token = req.params.signature
+    const decode = await verifySignature(token)
+    // check if user is a registered user
+    const rider = await RiderInstance.findOne({
+      where: { email:decode.email }
+    }) as unknown as RiderAttributes
+    const { otp, expiry } = GenerateOTP()
+    if (rider) {
+      const order = await OrderInstance.findOne({ where: { riderId: rider.id } }) as unknown as OrderAttribute
+      const user = await UserInstance.findOne( {where: {id: order.userId}}) as unknown as UserAttribute
+      const html = emailHtml(otp);
+      await mailSent(FromAdminMail, user.email, userSubject, html);
+      return res.status(200).json({
+        message: 'OTP sent, check your mail'
+      })
+    }
+    return res.status(400).json({
+      Error: 'Otp not sent'
+    })
+  }
+  catch (err) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/riders/verify"
+    })
+  }
+}
+
+
+/**============================Resend OTP=========================== **/
+export const DeliveryResendOTP = async (req:Request, res: Response) => {
+  try {
+    const token = req.params.signature;
+   
+    console.log('1');
+    const decode = await verifySignature(token);
+    console.log('2');
+   
+    // check if user is a registered user
+    const order = await OrderInstance.findOne({
+      where: { dropOffPhoneNumber: decode.dropOffPhoneNumber }
+    }) as unknown as OrderAttribute;
+    console.log('3');
+    console.log(order);
+    if (order) {
+      //Generate otp
+      const { otp, expiry } = GenerateOTP();
+      console.log('4');
+      //update user
+      const updatedUser = await UserInstance.update({ otp, otp_expiry: expiry },
+        { where: { email: decode.email } }) as unknown as UserAttribute;
+        console.log('5');
+      if (updatedUser) {
+        //Send OTP to user
+        // await onRequestOTP(otp, User.phone);
+        //send Email
+        const html = emailHtml(otp);
+        await mailSent(FromAdminMail, order.dropOffPhoneNumber, userSubject, html);
+        return res.status(200).json({
+          message: "OTP resent successfully, kindly check your email or phone number for OTP verification"
+        })
+      }
+    }
+    return res.status(400).json({
+      Error: 'Error sending OTP'
+    })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({
+      Error: "Internal server Error",
+      route: "/riders/resend-otp/:signature"
+    })
+  }
+}
