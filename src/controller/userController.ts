@@ -9,6 +9,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
 import { RiderAttributes, RiderInstance } from '../models/riderModel';
 import { OrderAttribute, OrderInstance } from '../models/orderModel';
+import { isExpressionWithTypeArguments } from 'typescript';
+import xPermittedCrossDomainPolicies from 'helmet/dist/types/middlewares/x-permitted-cross-domain-policies';
 
 
 export const Signup = async (req: Request, res: Response) => {
@@ -484,16 +486,18 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         message: "User not found",
       });
     }
-    console.log(user)
     if (user) {
       const riderCount = await RiderInstance.findAndCountAll()
       const length = riderCount.count
-
+      
       const allRider = await RiderInstance.findAll()
-      const selectedRider = allRider[randomDriver(length)]
+      // const selectedRider = allRider[randomDriver(length)]
+      const {otp, expiry} =  GenerateOTP()
       const order = (await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
+        otp: otp,
+        otp_expiry: expiry,
         packageDescription,
         dropOffLocation,
         dropOffPhoneNumber,
@@ -504,6 +508,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         dateCreated: new Date(),
         userId: user.id
       })) as unknown as OrderAttribute;
+      console.error(order)
       return res.status(201).json({
    message: "Order created successfully",
         order,
@@ -514,6 +519,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       Error: "user not found"
     })
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       Error: "Internal server Error",
       route: "/order-ride",

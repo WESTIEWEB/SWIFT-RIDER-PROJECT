@@ -7,6 +7,7 @@ import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notific
 import { FromAdminMail, userSubject } from "../config";
 import { OrderInstance, OrderAttribute } from "../models/orderModel";
 import { UserInstance, UserAttribute } from "../models/userModel";
+import { idText } from "typescript";
 //@desc Register rider
 //@route Post /rider/signup
 //@access Public
@@ -15,45 +16,34 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
     const { name, email, password, confirmPassword, phone, city, passport, validId, documents, plateNumber } = req.body;
     console.log(req.body)
     const uuidrider = uuidv4();
-
     const validateResult = riderRegisterSchema.validate(req.body, option);
-
     if (validateResult.error) {
-      return res
-        .status(400)
+      return res        .status(400)
         .json({ Error: validateResult.error.details[0].message });
     }
-
-    //generate salt
     const salt = await GenerateSalt();
 
-    //generate password
     const userPassword = await GeneratePassword(password, salt);
-    //Generate OTP
-    const { otp, expiry } = GenerateOTP();
+    const {otp, expiry} = GenerateOTP();
 
-    //check if user exist
-    const riderEmail = (await RiderInstance.findOne({
-      where: { email: email },
-    })) as unknown as RiderAttributes;
+    const riderEmail = await RiderInstance.findOne({
+      where: {email: email}
+    }) as unknown as RiderAttributes;
 
-    const riderPhone = (await RiderInstance.findOne({
-      where: { phone: phone },
-    }))
+    const riderPhone = await RiderInstance.findOne({
+      where: { phone: phone}
+    }) as unknown as RiderAttributes;
 
-    //check if user is exist in userDb
-    const isUserEmail = (await UserInstance.findOne({
+    const isUserEmail = await UserInstance.findOne({
       where: { email: email }
-    })) as unknown as UserAttribute;
+    }) as unknown as UserAttribute;
+    const isUserPhone = await RiderInstance.findOne({
+      where: { phone: phone}
+    }) as unknown as UserAttribute;
 
-    const isUserPhone = (await UserInstance.findOne({
-      where: { phone: phone }
-    })) as unknown as UserAttribute;
+    let images = req.files;
 
-    console.log(req.files)
-    let images = req.files
-    //create user
-    if (!riderEmail && !riderPhone && !isUserEmail && !isUserPhone) {
+    if(!riderEmail && !riderPhone && !isUserEmail && !isUserPhone) {
       let rider = await RiderInstance.create({
         id: uuidrider,
         name,
@@ -66,91 +56,43 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
         city,
         passport: images[2].path,
         otp,
-        plateNumber,
         otp_expiry: expiry,
         lng: 0,
         lat: 0,
         verified: false,
         role: 'rider',
+        plateNumber
       })
-      //send OTP
-      //await onRequestOTP(otp, phone);
 
-      //send email
       const html = emailHtml(otp);
       await mailSent(FromAdminMail, email, userSubject, html);
 
       const Rider = (await RiderInstance.findOne({
-        where: { email: email },
+        where: { email:email },
       })) as unknown as RiderAttributes;
 
-      let signature: {} = await GenerateSignature({
+      let signature = await GenerateSignature({
         id: Rider.id,
         email: Rider.email,
         verified: Rider.verified,
       });
-      //We return signature to the user to be used for authentication.
+
       return res.status(201).json({
         message: "Rider created successfully",
         signature,
         verified: Rider.verified,
-      });
+      })
     }
     return res.status(400).json({ message: "Rider already exist" });
 
   } catch (err: any) {
     res.status(500).json({
-      Error: "Internal server error",
+      Error: "Internal Server error",
       message: err.stack,
       route: "/riders/signup",
-      err
-    });
+      err    });
   }
 };
-
-export const login = async (req: JwtPayload, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const { error } = loginSchema.validate(req.body, option);
-    if (error) return res.status(400).json({
-      Error: error.details[0].message,
-    });
-    const rider = await RiderInstance.findOne({
-      where: { email: email }
-    }) as unknown as RiderAttributes;
-    if (rider.verified === true) {
-      const validation = await validatePassword(password, rider.password, rider.salt);
-      if (validation) {
-        let signature = await GenerateSignature({
-          id: rider.id,
-          email: rider.email,
-          verified: rider.verified
-        })
-        return res.status(200).json({
-          message: "succesfully logged in",
-          id: rider.id,
-          signature,
-          email: rider.email,
-          verified: rider.verified,
-          role: rider.role
-        })
-      }
-      return res.status(400).json({
-        Error: "wrong email or password"
-      })
-    }
-    return res.status(400).json({
-      message: "User not verified, please verify your account"
-    })
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      Error: "Internal server Error",
-      route: "/riders/login",
-    });
-  }
-};
-
 export const getUserOrderById = async (req:JwtPayload, res:Response) => {
   try {
     const { id } = req.rider;
@@ -398,6 +340,7 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
       );
 
       if (updatedBidding) {
+
         return res.status(200).json({ message: "Rider has accepted your order",
         rider },
           );
@@ -521,3 +464,5 @@ export const getRiderProfile = async (req: Request, res: Response) => {
     })
   }
 }
+
+

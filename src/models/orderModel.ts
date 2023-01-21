@@ -2,6 +2,8 @@ import { DataTypes, Model } from "sequelize";
 import { db } from "../config";
 export interface OrderAttribute {
   id: string;
+  otp: number;
+  otp_expiry: Date;
   pickupLocation: string;
   packageDescription: string;
   dropOffLocation: string;
@@ -22,6 +24,27 @@ OrderInstance.init(
       primaryKey: true,
       allowNull: false,
       unique: true,
+    },
+    otp: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: "otp required",
+        },
+      },
+    },
+    otp_expiry: {
+      type: DataTypes.DATE,
+      allowNull:false,
+      validate: {
+        notNull: {
+            msg: "Otp expired"
+        },
+        notEmpty: {
+            msg: "provide an Otp"
+        },
+      }
     },
     pickupLocation: {
       type: DataTypes.STRING,
