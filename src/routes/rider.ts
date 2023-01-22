@@ -8,7 +8,7 @@ const router = express.Router();
 
 
 router.post('/login', login)
-router.post('/riders-signup', upload.array('image',3), registerRider) 
+router.post('/riders-signup', registerRider) 
 router.patch('/update-rider/:signature', authRider, updateRiderProfile)
 router.post('/verify/:signature', VerifyUser)
 router.get('/resend-otp/:signature', ResendOTP)

@@ -14,7 +14,8 @@ import {
   Signup,
   getMyOrders,
   getOrder,
-  deleteOrder
+  deleteOrder,
+  userNotificationBell
 } from "../controller/userController";
 import { auth } from "../middleware/authorization";
 
@@ -38,5 +39,6 @@ router.get("/my-orders", auth, getMyOrders);
 router.patch("/updatePaymentMethod/:id", auth, updatePaymentMethod);
 router.get("/my-order/:ids", getOrder);
 router.delete("delete-order/:id", auth, deleteOrder);
+router.get("/user-notification",auth, userNotificationBell)
 
 export default router;

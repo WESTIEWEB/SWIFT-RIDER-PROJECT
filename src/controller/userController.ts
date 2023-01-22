@@ -1,15 +1,34 @@
-
-import express, {Request, Response} from 'express'
-import { UserAttribute, UserInstance } from '../models/userModel';
-import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature, option, editProfileSchema, validatePassword, loginSchema, verifySignature, forgotPasswordSchema, resetPasswordSchema, orderRideSchema} from "../utils/validation";
-import {  onRequestOTP , GenerateOTP, emailHtml, mailSent, mailSent2, emailHtml2, randomDriver} from "../utils/notification";
-import bcrypt from 'bcrypt'
-import {v4 as uuidv4} from 'uuid'
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
-import { RiderAttributes, RiderInstance } from '../models/riderModel';
-import { OrderAttribute, OrderInstance } from '../models/orderModel';
-
+import express, { Request, Response } from "express";
+import { UserAttribute, UserInstance } from "../models/userModel";
+import {
+  GeneratePassword,
+  GenerateSalt,
+  registerSchema,
+  GenerateSignature,
+  option,
+  editProfileSchema,
+  validatePassword,
+  loginSchema,
+  verifySignature,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  orderRideSchema,
+} from "../utils/validation";
+import {
+  onRequestOTP,
+  GenerateOTP,
+  emailHtml,
+  mailSent,
+  mailSent2,
+  emailHtml2,
+  randomDriver,
+} from "../utils/notification";
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from "../config";
+import { RiderAttributes, RiderInstance } from "../models/riderModel";
+import { OrderAttribute, OrderInstance } from "../models/orderModel";
 
 export const Signup = async (req: Request, res: Response) => {
   try {
@@ -98,9 +117,9 @@ export const Signup = async (req: Request, res: Response) => {
 
 export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
   try {
-    const token = req.params.id
-    console.log("This is the token", token)
-    const { id } = await verifySignature(token) 
+    const token = req.params.id;
+    console.log("This is the token", token);
+    const { id } = await verifySignature(token);
     const { name, phone, email } = req.body;
     const validateResult = editProfileSchema.validate(req.body, option);
     if (validateResult.error) {
@@ -484,13 +503,13 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         message: "User not found",
       });
     }
-    console.log(user)
+    console.log(user);
     if (user) {
-      const riderCount = await RiderInstance.findAndCountAll()
-      const length = riderCount.count
+      const riderCount = await RiderInstance.findAndCountAll();
+      const length = riderCount.count;
 
-      const allRider = await RiderInstance.findAll()
-      const selectedRider = allRider[randomDriver(length)]
+      const allRider = await RiderInstance.findAll();
+      const selectedRider = allRider[randomDriver(length)];
       const order = (await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
@@ -502,17 +521,16 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
         dateCreated: new Date(),
-        userId: user.id
+        userId: user.id,
       })) as unknown as OrderAttribute;
       return res.status(201).json({
-   message: "Order created successfully",
+        message: "Order created successfully",
         order,
       });
-      
     }
     return res.status(400).json({
-      Error: "user not found"
-    })
+      Error: "user not found",
+    });
   } catch (error) {
     return res.status(500).json({
       Error: "Internal server Error",
@@ -636,62 +654,100 @@ export const updatePaymentMethod = async (req: JwtPayload, res: Response) => {
 
 //================================GET SINGLE ORDER ==========================\\
 export const getOrder = async (req: JwtPayload, res: Response) => {
-  try {
-    const {ids} = req.params;
- 
-    const Order = await OrderInstance.findOne({
-      where: { id: ids },
-    });
- 
-    if (!Order) {
-      return res.status(400).json({
-        message: "No order found",
-      });
-    }
-console.log(Order);
-    res.status(200).json({
-      message: "Order fetched successfully",
-      Order
-    });
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({
-      Error: "Internal server Error",
-      route: "/get-order",
-      msg: error
-    });
-  }
+  try {
+    const { ids } = req.params;
+    const Order = await OrderInstance.findOne({
+      where: { id: ids },
+    });
+    if (!Order) {
+      return res.status(400).json({
+        message: "No order found",
+      });
+    }
+    console.log(Order);
+    res.status(200).json({
+      message: "Order fetched successfully",
+      Order,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/get-order",
+      msg: error,
+    });
+  }
 };
 
 /******************   Delete Order By Id *********************/
 
-export const deleteOrder = async (req:JwtPayload, res:Response) => {
+export const deleteOrder = async (req: JwtPayload, res: Response) => {
   try {
-    const {userId} = req.user
-    const {id} = req.params;
+    const { userId } = req.user;
+    const { id } = req.params;
 
-    const User = await UserInstance.findOne({
-      where: {id: userId}
-    }) as unknown as UserAttribute;
+    const User = (await UserInstance.findOne({
+      where: { id: userId },
+    })) as unknown as UserAttribute;
 
-    if(User) {
+    if (User) {
       const order = await OrderInstance.destroy({
-        where: {id : id}
-      })
+        where: { id: id },
+      });
 
       return res.status(200).json({
-        message: "Order deleted successfully"
-      })
+        message: "Order deleted successfully",
+      });
     }
     return res.status(404).json({
-      Error: "User not found"
+      Error: "User not found",
     });
-
-  } catch(err) {
+  } catch (err) {
     return res.status(500).json({
       Error: "Internal server error",
       message: err,
-      route: "users/delete-order"
-    })
+      route: "users/delete-order",
+    });
   }
-}
+};
+
+export const userNotificationBell = async (req: JwtPayload, res: Response) => {
+  try {
+    const { id } = req.user;
+
+    const user = (await UserInstance.findOne({
+      where: { id: id },
+    })) as unknown as UserAttribute;
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+
+    const Orders = await OrderInstance.findAndCountAll({
+      where: { userId: user.id, status: ["accepted", "completed"] },
+    });
+
+    if (!Orders) {
+      return res.status(400).json({
+        message: "No orders found",
+      });
+    }
+
+    // const ifNotPending = Orders.status !== "pending";
+
+    res.status(200).json({
+      message: "Orders fetched successfully",
+      count: Orders.count,
+      rows: Orders.rows,
+      
+    });
+  } catch (error) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/get-all-orders",
+      msg: error,
+    });
+  }
+};
