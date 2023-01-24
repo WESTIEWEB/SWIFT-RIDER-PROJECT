@@ -94,4 +94,5 @@ export const orderRideSchema = Joi.object().keys({
   dropOffLocation: Joi.string().required(),
   dropOffPhoneNumber: Joi.string().required(),
   offerAmount: Joi.number().required(),
+  paymentMethod: Joi.string().required()
 });
