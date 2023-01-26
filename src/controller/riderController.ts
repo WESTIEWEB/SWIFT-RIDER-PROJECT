@@ -8,13 +8,15 @@ import { FromAdminMail, userSubject } from "../config";
 import { OrderInstance, OrderAttribute } from "../models/orderModel";
 import { UserInstance, UserAttribute } from "../models/userModel";
 import { idText } from "typescript";
+import { NotificationInstance } from "../models/notification";
 //@desc Register rider
 //@route Post /rider/signup
 //@access Public
 export const registerRider = async (req: JwtPayload, res: Response, next: NextFunction) => {
   try {
     const { name, email, password, confirmPassword, phone, city, passport, validId, documents, plateNumber } = req.body;
-    console.log(req.body)
+    console.log("body",req.body)
+    console.log("name",req.name)
     const uuidrider = uuidv4();
     const validateResult = riderRegisterSchema.validate(req.body, option);
     if (validateResult.error) {
@@ -331,6 +333,7 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
     const { orderId } = req.params;
 
     const rider = await RiderInstance.findOne({ where: { id: id } });
+    const order = await OrderInstance.findOne({ where: { id: orderId } });
 
     if (rider) {
       const updatedBidding = await OrderInstance.update(
@@ -338,9 +341,17 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
         riderId: id},
         { where: { id: orderId } }
       );
-
+    //  console.log("updated bid", order)
       if (updatedBidding) {
-
+        await NotificationInstance.create({
+          id: uuidv4(),
+          notificationType: "Accepted",
+          riderId: id,
+          orderId: orderId,
+          userId: order!.dataValues.userId,
+          description: "Your order has been accepted",
+          read: false
+        })
         return res.status(200).json({ message: "Rider has accepted your order",
         rider },
           );
