@@ -349,7 +349,7 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
           riderId: id,
           orderId: orderId,
           userId: order!.dataValues.userId,
-          description: "Your order has been accepted",
+          description: order!.dataValues.packageDescription,
           read: false
         })
         return res.status(200).json({ message: "Rider has accepted your order",

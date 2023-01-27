@@ -726,3 +726,34 @@ export const myNotification = async (req:JwtPayload, res:Response) => {
     })
   }
 }
+
+//UPDATE MY NOTIFICATION
+export const updateNotification = async (req:JwtPayload, res:Response) => {
+  try {
+    const { notifyId } = req.params;
+
+    const itemId = await NotificationInstance.findOne({
+    where: { id:  notifyId, userId: req.user.id}
+    });
+
+    if (!itemId) {
+      return res.status(404).json("Invalid request")
+    }
+
+    const notification = await NotificationInstance.update({
+        read: true,
+      },
+      { where: { id: notifyId}});
+
+    return res.status(200).json({
+      notification
+    })
+      } catch(err) {
+    return res.status(500).json({
+      Error: "Internal server error",
+      message: err,
+      route: "users/my-notification"
+    })
+  }
+}
+
