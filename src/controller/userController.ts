@@ -468,6 +468,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       dropOffLocation,
       dropOffPhoneNumber,
       offerAmount,
+      paymentMethod
     } = req.body;
     const orderUUID = uuidv4();
     //validate req body
@@ -502,7 +503,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         dropOffLocation,
         dropOffPhoneNumber,
         offerAmount,
-        paymentMethod: "",
+        paymentMethod,
         orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
         dateCreated: new Date(),
