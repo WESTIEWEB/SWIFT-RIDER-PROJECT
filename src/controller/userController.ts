@@ -493,12 +493,12 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       
       const allRider = await RiderInstance.findAll()
       // const selectedRider = allRider[randomDriver(length)]
-      const {otp, expiry} =  GenerateOTP()
+      // const {otp, expiry} =  GenerateOTP()
       const order = (await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
-        otp: otp,
-        otp_expiry: expiry,
+        otp: 0,
+        otp_expiry: new Date(),
         packageDescription,
         dropOffLocation,
         dropOffPhoneNumber,
