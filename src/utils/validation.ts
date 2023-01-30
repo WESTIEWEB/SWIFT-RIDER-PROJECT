@@ -53,7 +53,7 @@ export const GeneratePassword = async (password: string, salt: string) => {
   return await bcrypt.hash(password, salt);
 };
 export const GenerateSignature = async (payload: AuthPayload) => {
-  return jwt.sign(payload, APP_SECRET, { expiresIn: "1d" });
+  return jwt.sign(payload, APP_SECRET, { expiresIn: "30m" });
 };
 //GENERATE TOKEN FOR A USER
 export const verifySignature = async (signature: string) => {
