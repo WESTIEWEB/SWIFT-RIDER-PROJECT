@@ -10,7 +10,8 @@ import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
 import { RiderAttributes, RiderInstance } from '../models/riderModel';
 import { OrderAttribute, OrderInstance } from '../models/orderModel';
 import { isExpressionWithTypeArguments } from 'typescript';
-import xPermittedCrossDomainPolicies from 'helmet/dist/types/middlewares/x-permitted-cross-domain-policies';
+import { NotificationInstance } from '../models/notification';
+// import xPermittedCrossDomainPolicies from 'helmet/dist/types/middlewares/x-permitted-cross-domain-policies';
 
 
 export const Signup = async (req: Request, res: Response) => {
@@ -702,3 +703,57 @@ export const deleteOrder = async (req:JwtPayload, res:Response) => {
     })
   }
 }
+
+//GET MY NOTIFICATION
+export const myNotification = async (req:JwtPayload, res:Response) => {
+  try {
+    const notify = await NotificationInstance.findAll({
+    where: { userId: req.user.id }
+  });
+    if (!notify) {
+      return res.status(404).json("Invalid request")
+    }
+
+    return res.status(200).json({
+      count: notify.length,
+      notify
+    })
+      } catch(err) {
+    return res.status(500).json({
+      Error: "Internal server error",
+      message: err,
+      route: "users/my-notification"
+    })
+  }
+}
+
+//UPDATE MY NOTIFICATION
+export const updateNotification = async (req:JwtPayload, res:Response) => {
+  try {
+    const { notifyId } = req.params;
+
+    const itemId = await NotificationInstance.findOne({
+    where: { id:  notifyId, userId: req.user.id}
+    });
+
+    if (!itemId) {
+      return res.status(404).json("Invalid request")
+    }
+
+    const notification = await NotificationInstance.update({
+        read: true,
+      },
+      { where: { id: notifyId}});
+
+    return res.status(200).json({
+      notification
+    })
+      } catch(err) {
+    return res.status(500).json({
+      Error: "Internal server error",
+      message: err,
+      route: "users/my-notification"
+    })
+  }
+}
+
