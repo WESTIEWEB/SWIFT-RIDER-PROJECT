@@ -10,7 +10,6 @@ import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
 import { RiderAttributes, RiderInstance } from '../models/riderModel';
 import { OrderAttribute, OrderInstance } from '../models/orderModel';
 import { isExpressionWithTypeArguments } from 'typescript';
-import xPermittedCrossDomainPolicies from 'helmet/dist/types/middlewares/x-permitted-cross-domain-policies';
 
 
 export const Signup = async (req: Request, res: Response) => {
