@@ -5,11 +5,17 @@ import userRouter from './routes/user';
 import riderRouter from './routes/rider';
 import indexRouter from './routes/index';
 import adminRouter from './routes/admin';
+import chatRouter from './routes/chat'
 import {db} from './config'
 import cors from "cors";
 import {URL, port} from './config'
 import dotenv from 'dotenv';
 dotenv.config();
+
+
+
+
+
 
 //Sequelize connection
 db.sync().then(() => {
@@ -32,6 +38,7 @@ app.use('/users', userRouter)
 app.use('/', indexRouter)
 app.use('/riders', riderRouter)
 app.use('/admin', adminRouter)
+app.use('/chat',  chatRouter)
 
 
 app.listen(port, ()=>{
@@ -39,3 +46,6 @@ app.listen(port, ()=>{
 })
 
 export default app;
+
+
+
