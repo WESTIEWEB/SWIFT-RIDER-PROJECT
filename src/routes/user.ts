@@ -15,8 +15,8 @@ import {
   getMyOrders,
   getOrder,
   deleteOrder,
-  // myNotification,
-  // updateNotification
+  myNotification,
+  updateNotification
 } from "../controller/userController";
 import { auth } from "../middleware/authorization";
 import { upload } from "../utils/multer";
@@ -42,8 +42,8 @@ router.patch("/updatePaymentMethod/:id", auth, updatePaymentMethod);
 router.get("/my-order/:ids", getOrder);
 router.delete("delete-order/:id", auth, deleteOrder);
 
-//notification
-// router.get("/my-notification", auth, myNotification);
-// router.patch("/update-notification/:notifyId", auth, updateNotification);
+// notification
+router.get("/my-notification", auth, myNotification);
+router.patch("/update-notification/:notifyId", auth, updateNotification);
 
 export default router;
