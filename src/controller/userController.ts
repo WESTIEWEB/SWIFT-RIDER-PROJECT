@@ -55,15 +55,15 @@ export const Signup = async (req: Request, res: Response) => {
     const userPassword = (await GeneratePassword(password, salt)) as string;
 
     const { otp, expiry } = GenerateOTP();
-
+    const newEmail = email.trim().toLowerCase();
     //check user details
-    const User = await UserInstance.findOne({ where: { email: email } });
+    const User = await UserInstance.findOne({ where: { email: newEmail } });
     const userPhone = await UserInstance.findOne({
       where: { phone: phone },
     });
 
     const isRiderEmail = (await RiderInstance.findOne({
-      where: { email: email },
+      where: { email: newEmail },
     })) as unknown as RiderAttributes;
 
     const isRiderPhone = await RiderInstance.findOne({
@@ -76,7 +76,7 @@ export const Signup = async (req: Request, res: Response) => {
         id: uuiduser,
         name,
         phone,
-        email,
+        email: newEmail,
         password: userPassword,
         salt: salt,
         address: "",
@@ -92,7 +92,7 @@ export const Signup = async (req: Request, res: Response) => {
       // Check if user exist
 
       const User = (await UserInstance.findOne({
-        where: { email: email },
+        where: { email: newEmail },
       })) as unknown as UserAttribute;
       const signature = await GenerateSignature({
         id: User.id,
@@ -113,7 +113,6 @@ export const Signup = async (req: Request, res: Response) => {
       Error: "Internal server error",
       route: "users/signup",
     });
-    console.log(error);
   }
 };
 
@@ -520,8 +519,8 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       const order = (await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
-        otp: 0,
-        otp_expiry: new Date(),
+        otp: otp,
+        otp_expiry: expiry,
         packageDescription,
         dropOffLocation,
         dropOffPhoneNumber,

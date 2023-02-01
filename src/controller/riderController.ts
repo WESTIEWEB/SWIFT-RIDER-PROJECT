@@ -707,7 +707,7 @@ export const getAcceptedBid = async (req: JwtPayload, res: Response) => {
         message: "No orders found",
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       message: "Orders fetched successfully",
       rows: Orders.rows,
       count: Orders.count,
