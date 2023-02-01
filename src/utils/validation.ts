@@ -67,10 +67,11 @@ export const validatePassword = async (
   return (await GeneratePassword(enteredPassword, salt)) === savedPassword;
 };
 export const editProfileSchema = Joi.object().keys({
-  name: Joi.string(),
-  phone: Joi.string(),
-  email: Joi.string(),
-  address: Joi.string()
+  name: Joi.string().required(),
+  phone: Joi.string().required(),
+  email: Joi.string().required(),
+  address: Joi.string(),
+  passport: Joi.string()
 });
 //schema for reset Password
 export const forgotPasswordSchema = Joi.object().keys({
@@ -94,5 +95,5 @@ export const orderRideSchema = Joi.object().keys({
   dropOffLocation: Joi.string().required(),
   dropOffPhoneNumber: Joi.string().required(),
   offerAmount: Joi.number().required(),
-  paymentMethod: Joi.string().required()
+  paymentMethod: Joi.string().required(),
 });

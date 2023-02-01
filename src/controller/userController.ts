@@ -1,16 +1,35 @@
+import express, { Request, Response } from "express";
+import { UserAttribute, UserInstance } from "../models/userModel";
+import {
+  GeneratePassword,
+  GenerateSalt,
+  registerSchema,
+  GenerateSignature,
+  option,
+  editProfileSchema,
+  validatePassword,
+  loginSchema,
+  verifySignature,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  orderRideSchema,
+} from "../utils/validation";
+import {
+  onRequestOTP,
+  GenerateOTP,
+  emailHtml,
+  mailSent,
+  mailSent2,
+  emailHtml2,
+  randomDriver,
+} from "../utils/notification";
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from "../config";
+import { RiderAttributes, RiderInstance } from "../models/riderModel";
+import { OrderAttribute, OrderInstance } from "../models/orderModel";
 
-import express, {Request, Response} from 'express'
-import { UserAttribute, UserInstance } from '../models/userModel';
-import { GeneratePassword, GenerateSalt, registerSchema , GenerateSignature, option, editProfileSchema, validatePassword, loginSchema, verifySignature, forgotPasswordSchema, resetPasswordSchema, orderRideSchema} from "../utils/validation";
-import {  onRequestOTP , GenerateOTP, emailHtml, mailSent, mailSent2, emailHtml2, randomDriver} from "../utils/notification";
-import bcrypt from 'bcrypt'
-import {v4 as uuidv4} from 'uuid'
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { APP_SECRET, Base_Url, FromAdminMail, userSubject } from '../config';
-import { RiderAttributes, RiderInstance } from '../models/riderModel';
-import { OrderAttribute, OrderInstance } from '../models/orderModel';
-import { isExpressionWithTypeArguments } from 'typescript';
-import { NotificationInstance } from '../models/notification';
 
 export const Signup = async (req: Request, res: Response) => {
   try {
@@ -99,10 +118,8 @@ export const Signup = async (req: Request, res: Response) => {
 
 export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
   try {
-    const token = req.params.id
-    console.log("This is the token", token)
-    const { id } = await verifySignature(token) 
-    const { name, phone, email } = req.body;
+    const {id} = req.user;
+    const { name, phone, email, passport } = req.body;
     const validateResult = editProfileSchema.validate(req.body, option);
     if (validateResult.error) {
       return res.status(400).json({
@@ -113,12 +130,14 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
       where: { id: id },
     })) as unknown as UserAttribute;
     if (!User) {
-      return res.status(400).json({
-        Error: "You are not authorized to update user",
+      return res.status(401).json({
+        Error: "You are not authorized",
       });
     }
+    console.log("",req.file);
     const newUser = (await UserInstance.update(
       {
+        passport: req.file.path,
         name,
         phone,
         email,
@@ -134,8 +153,8 @@ export const UpdateUserProfile = async (req: JwtPayload, res: Response) => {
         User,
       });
     }
-    return res.status(400).json({
-      Error: "User does not exist",
+    return res.status(401).json({
+      Error: "Failed to update profile",
     });
   } catch (err) {
     return res.status(500).json({
@@ -157,9 +176,10 @@ export const Login = async (req: Request, res: Response) => {
     }
     // check if user exists
     const User = (await UserInstance.findOne({
-      where: { email: email },
+      where: { email: email.trim().toLowerCase() },
     })) as unknown as UserAttribute;
 
+    console.log("User")
     const Rider = (await RiderInstance.findOne({
       where: { email: email },
     })) as unknown as RiderAttributes;
@@ -184,7 +204,9 @@ export const Login = async (req: Request, res: Response) => {
           verified: User.verified,
           role: User.role,
           name: User.name,
+          image: User.passport
         });
+  
       }
       return res.status(400).json({
         Error: "Wrong Username or password or not a verified user",
@@ -210,6 +232,7 @@ export const Login = async (req: Request, res: Response) => {
           verified: Rider.verified,
           role: Rider.role,
           name: Rider.name,
+          image: Rider.passport
         });
       }
       return res.status(400).json({
@@ -467,7 +490,7 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       dropOffLocation,
       dropOffPhoneNumber,
       offerAmount,
-      paymentMethod
+      paymentMethod,
     } = req.body;
     const orderUUID = uuidv4();
     //validate req body
@@ -487,12 +510,12 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
       });
     }
     if (user) {
-      const riderCount = await RiderInstance.findAndCountAll()
-      const length = riderCount.count
-      
-      const allRider = await RiderInstance.findAll()
+      const riderCount = await RiderInstance.findAndCountAll();
+      const length = riderCount.count;
+
+      const allRider = await RiderInstance.findAll();
       // const selectedRider = allRider[randomDriver(length)]
-      // const {otp, expiry} =  GenerateOTP()
+      const { otp, expiry } = GenerateOTP();
       const order = (await OrderInstance.create({
         id: orderUUID,
         pickupLocation,
@@ -506,20 +529,19 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
         orderNumber: "" + Math.floor(Math.random() * 1000000000),
         status: "pending",
         dateCreated: new Date(),
-        userId: user.id
+        userId: user.id,
       })) as unknown as OrderAttribute;
-      console.error(order)
+      console.error(order);
       return res.status(201).json({
-   message: "Order created successfully",
+        message: "Order created successfully",
         order,
       });
-      
     }
     return res.status(400).json({
-      Error: "user not found"
-    })
+      Error: "user not found",
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).json({
       Error: "Internal server Error",
       route: "/order-ride",
@@ -533,34 +555,29 @@ export const orderRide = async (req: JwtPayload, res: Response) => {
 export const getMyOrders = async (req: JwtPayload, res: Response) => {
   try {
     const { id } = req.user;
-
     const user = (await UserInstance.findOne({
       where: { id: id },
     })) as unknown as UserAttribute;
-
     if (!user) {
       return res.status(400).json({
         message: "User not found",
       });
     }
-
     const Orders = await OrderInstance.findAndCountAll({
       where: { userId: user.id },
     });
-
     if (!Orders) {
       return res.status(400).json({
         message: "No orders found",
       });
     }
-
     res.status(200).json({
       message: "Orders fetched successfully",
       rows: Orders.rows,
       count: Orders.count,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       Error: "Internal server Error",
       route: "/get-all-orders",
       msg: error,
@@ -593,7 +610,7 @@ export const getMyCompletedOrders = async (req: JwtPayload, res: Response) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Orders fetched successfully",
       completedOrders,
       count: completedOrders.count,
@@ -642,116 +659,59 @@ export const updatePaymentMethod = async (req: JwtPayload, res: Response) => {
 
 //================================GET SINGLE ORDER ==========================\\
 export const getOrder = async (req: JwtPayload, res: Response) => {
-  try {
-    const {ids} = req.params;
- 
-    const Order = await OrderInstance.findOne({
-      where: { id: ids },
-    });
- 
-    if (!Order) {
-      return res.status(400).json({
-        message: "No order found",
-      });
-    }
-console.log(Order);
-    res.status(200).json({
-      message: "Order fetched successfully",
-      Order
-    });
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({
-      Error: "Internal server Error",
-      route: "/get-order",
-      msg: error
-    });
-  }
+  try {
+    const { ids } = req.params;
+    const Order = await OrderInstance.findOne({
+      where: { id: ids },
+    });
+    if (!Order) {
+      return res.status(400).json({
+        message: "No order found",
+      });
+    }
+    console.log(Order);
+    res.status(200).json({
+      message: "Order fetched successfully",
+      Order,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/get-order",
+      msg: error,
+    });
+  }
 };
 
 /******************   Delete Order By Id *********************/
 
-export const deleteOrder = async (req:JwtPayload, res:Response) => {
+export const deleteOrder = async (req: JwtPayload, res: Response) => {
   try {
-    const {userId} = req.user
-    const {id} = req.params;
+    const { userId } = req.user;
+    const { id } = req.params;
 
-    const User = await UserInstance.findOne({
-      where: {id: userId}
-    }) as unknown as UserAttribute;
+    const User = (await UserInstance.findOne({
+      where: { id: userId },
+    })) as unknown as UserAttribute;
 
-    if(User) {
+    if (User) {
       const order = await OrderInstance.destroy({
-        where: {id : id}
-      })
+        where: { id: id },
+      });
 
       return res.status(200).json({
-        message: "Order deleted successfully"
-      })
+        message: "Order deleted successfully",
+      });
     }
     return res.status(404).json({
-      Error: "User not found"
+      Error: "User not found",
     });
-
-  } catch(err) {
+  } catch (err) {
     return res.status(500).json({
       Error: "Internal server error",
       message: err,
-      route: "users/delete-order"
-    })
-  }
-}
-
-//GET MY NOTIFICATION
-export const myNotification = async (req:JwtPayload, res:Response) => {
-  try {
-    const notify = await NotificationInstance.findAll({
-    where: { userId: req.user.id }
-  });
-    if (!notify) {
-      return res.status(404).json("Invalid request")
-    }
-
-    return res.status(200).json({
-      count: notify.length,
-      notify
-    })
-      } catch(err) {
-    return res.status(500).json({
-      Error: "Internal server error",
-      message: err,
-      route: "users/my-notification"
-    })
-  }
-}
-
-//UPDATE MY NOTIFICATION
-export const updateNotification = async (req:JwtPayload, res:Response) => {
-  try {
-    const { notifyId } = req.params;
-
-    const itemId = await NotificationInstance.findOne({
-    where: { id:  notifyId, userId: req.user.id}
+      route: "users/delete-order",
     });
-
-    if (!itemId) {
-      return res.status(404).json("Invalid request")
-    }
-
-    const notification = await NotificationInstance.update({
-        read: true,
-      },
-      { where: { id: notifyId}});
-
-    return res.status(200).json({
-      notification
-    })
-      } catch(err) {
-    return res.status(500).json({
-      Error: "Internal server error",
-      message: err,
-      route: "users/my-notification"
-    })
   }
-}
-
+};

@@ -1,9 +1,24 @@
 import { Request, Response, NextFunction } from "express";
 import { RiderInstance, RiderAttributes } from "../models/riderModel";
-import { GeneratePassword, GenerateSalt, GenerateSignature, loginSchema, option, riderRegisterSchema, validatePassword, updateRiderSchema, verifySignature } from "../utils/validation";
+import {
+  GeneratePassword,
+  GenerateSalt,
+  GenerateSignature,
+  loginSchema,
+  option,
+  riderRegisterSchema,
+  validatePassword,
+  updateRiderSchema,
+  verifySignature,
+} from "../utils/validation";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { v4 as uuidv4 } from 'uuid';
-import { emailHtml, GenerateOTP, mailSent, onRequestOTP } from "../utils/notification";
+import { v4 as uuidv4 } from "uuid";
+import {
+  emailHtml,
+  GenerateOTP,
+  mailSent,
+  onRequestOTP,
+} from "../utils/notification";
 import { FromAdminMail, userSubject } from "../config";
 import { OrderInstance, OrderAttribute } from "../models/orderModel";
 import { UserInstance, UserAttribute } from "../models/userModel";
@@ -12,15 +27,30 @@ import { NotificationInstance } from "../models/notification";
 //@desc Register rider
 //@route Post /rider/signup
 //@access Public
-export const registerRider = async (req: JwtPayload, res: Response, next: NextFunction) => {
+export const registerRider = async (
+  req: JwtPayload,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { name, email, password, confirmPassword, phone, city, passport, validId, documents, plateNumber } = req.body;
-    console.log("body",req.body)
-    console.log("name",req.name)
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      phone,
+      city,
+      passport,
+      validId,
+      documents,
+      plateNumber,
+    } = req.body;
+    console.log(req.body);
     const uuidrider = uuidv4();
     const validateResult = riderRegisterSchema.validate(req.body, option);
     if (validateResult.error) {
-      return res.status(400)
+      return res
+        .status(400)
         .json({ Error: validateResult.error.details[0].message });
     }
     const salt = await GenerateSalt();
@@ -28,20 +58,20 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
     const userPassword = await GeneratePassword(password, salt);
     const { otp, expiry } = GenerateOTP();
 
-    const riderEmail = await RiderInstance.findOne({
-      where: { email: email }
-    }) as unknown as RiderAttributes;
+    const riderEmail = (await RiderInstance.findOne({
+      where: { email: email },
+    })) as unknown as RiderAttributes;
 
-    const riderPhone = await RiderInstance.findOne({
-      where: { phone: phone }
-    }) as unknown as RiderAttributes;
+    const riderPhone = (await RiderInstance.findOne({
+      where: { phone: phone },
+    })) as unknown as RiderAttributes;
 
-    const isUserEmail = await UserInstance.findOne({
-      where: { email: email }
-    }) as unknown as UserAttribute;
-    const isUserPhone = await RiderInstance.findOne({
-      where: { phone: phone }
-    }) as unknown as UserAttribute;
+    const isUserEmail = (await UserInstance.findOne({
+      where: { email: email },
+    })) as unknown as UserAttribute;
+    const isUserPhone = (await RiderInstance.findOne({
+      where: { phone: phone },
+    })) as unknown as UserAttribute;
 
     let images = req.files;
 
@@ -62,9 +92,9 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
         lng: 0,
         lat: 0,
         verified: false,
-        role: 'rider',
-        plateNumber
-      })
+        role: "rider",
+        plateNumber,
+      });
 
       const html = emailHtml(otp);
       await mailSent(FromAdminMail, email, userSubject, html);
@@ -83,16 +113,15 @@ export const registerRider = async (req: JwtPayload, res: Response, next: NextFu
         message: "Rider created successfully",
         signature,
         verified: Rider.verified,
-      })
+      });
     }
     return res.status(400).json({ message: "Rider already exist" });
-
   } catch (err: any) {
     res.status(500).json({
       Error: "Internal Server error",
       message: err.stack,
       route: "/riders/signup",
-      err
+      err,
     });
   }
 };
@@ -102,154 +131,154 @@ export const getUserOrderById = async (req: JwtPayload, res: Response) => {
 
     const { orderId } = req.params;
 
-    const rider = await RiderInstance.findOne({
-      where: { id: id }
-    }) as unknown as RiderAttributes;
+    const rider = (await RiderInstance.findOne({
+      where: { id: id },
+    })) as unknown as RiderAttributes;
 
     if (rider) {
       const myOrder = await OrderInstance.findOne({
         where: { id: orderId },
-        include: [{
-          model: UserInstance,
-          as: "user",
-          attributes: ["name"]
-        }]
+        include: [
+          {
+            model: UserInstance,
+            as: "user",
+            attributes: ["name"],
+          },
+        ],
       });
 
       return res.status(200).json({
         message: "successfully fetched order by Id",
         myOrder,
-      })
+      });
     }
 
     return res.status(401).json({
-      Error: "user not authorized"
-    })
-
+      Error: "user not authorized",
+    });
   } catch (err) {
     return res.status(500).json({
       Error: "internal server error",
-      route: "riders/get-order-byId/"
-    })
+      route: "riders/get-order-byId/",
+    });
   }
-}
+};
 
 export const getOrderOwnerNameById = async (req: Request, res: Response) => {
   try {
-
     const { orderOwnerId } = req.params;
-    const orderOwnerDetails = await UserInstance.findOne({
-      where: { id: orderOwnerId }
-    }) as unknown as UserAttribute;
+    const orderOwnerDetails = (await UserInstance.findOne({
+      where: { id: orderOwnerId },
+    })) as unknown as UserAttribute;
 
     if (orderOwnerDetails) {
       return res.status(200).json({
         message: "successfully fetched order by Id",
         owner: orderOwnerDetails.name,
-      })
-
+      });
     }
     return res.status(404).json({
-      Error: "Not Found"
-    })
-
+      Error: "Not Found",
+    });
   } catch (err) {
     return res.status(500).json({
       Error: "internal server error",
-      route: "riders/get-order-owner-name-byId/"
-    })
+      route: "riders/get-order-owner-name-byId/",
+    });
   }
-}
+};
 
 export const updateRiderProfile = async (req: JwtPayload, res: Response) => {
   try {
-    const id = req.rider.id;
-    const { name, phone, email } = req.body
-    //Joi validation
-    const validateResult = updateRiderSchema.validate(req.body, option)
+    const { id } = req.rider;
+    const { name, phone, email } = req.body;
+    const validateResult = updateRiderSchema.validate(req.body, option);
     if (validateResult.error) {
-
-      res.status(400).json({
-        Error: validateResult.error.details[0].message
-      })
-    }
-    //check if the rider is a registered user
-    const Rider = (await RiderInstance.findOne({ where: { id: id } })) as unknown as RiderAttributes;
-    if (!Rider) {
       return res.status(400).json({
-        Error: "You are not authorised to update your profile"
-      })
+        Error: validateResult.error.details[0].message,
+      });
     }
-    //Update Record
-    const updatedRider = await RiderInstance.update(
-      {
-        name,
-        phone,
-        email,
-      }, { where: { id: id } }) as unknown as RiderAttributes;
-    if (updatedRider) {
-      const User = await RiderInstance.findOne({ where: { id: id } }) as unknown as RiderAttributes;
-      return res.status(200).json({
-        message: 'profile updated successfully',
-        User
-      })
-    }
-    return res.status(400).json({
-      Error: "Error occured"
-    })
+    const User = (await RiderInstance.findOne({
+      where: { id: id },
+    })) as unknown as RiderAttributes;
+
+    if (User) {
+      const newUser = (await RiderInstance.update(
+        {
+          name,
+          phone,
+          email,
+        },
+        { where: { id: id } }
+      )) as unknown as RiderAttributes;
+      if (newUser) {
+        const User = (await RiderInstance.findOne({
+          where: { id: id },
+        })) as unknown as RiderAttributes;
+        return res.status(200).json({
+          message: "Profile updated successfully",
+          User,
+        });
+      }
+    return res.status(401).json({
+      Error: "Failed to update profile",
+    });
+  } return res.status(401).json({
+    Error: "You are not athorized"
+  })
   } catch (err) {
     return res.status(500).json({
       Error: "Internal server Error",
-      route: "/users/update-profile"
-    })
+      route: "/riders/update-rider",
+    });
   }
 };
 /**==================Verify Users==================== **/
 export const VerifyUser = async (req: Request, res: Response) => {
   try {
-    const token = req.params.signature
-    const decode = await verifySignature(token)
+    const token = req.params.signature;
+    const decode = await verifySignature(token);
     // check if user is a registered user
-    const User = await RiderInstance.findOne({
-      where: { email: decode.email }
-    }) as unknown as RiderAttributes
+    const User = (await RiderInstance.findOne({
+      where: { email: decode.email },
+    })) as unknown as RiderAttributes;
     if (User) {
-      const { otp } = req.body
+      const { otp } = req.body;
       //check if the otp submitted by the user is correct and is same with the one in the database
       if (User.otp === parseInt(otp) && User.otp_expiry >= new Date()) {
         //update user
-        const updatedUser = await RiderInstance.update({ verified: true },
-          { where: { email: decode.email } }) as unknown as RiderAttributes
+        const updatedUser = (await RiderInstance.update(
+          { verified: true },
+          { where: { email: decode.email } }
+        )) as unknown as RiderAttributes;
         // Generate a new Signature
         let signature = await GenerateSignature({
           id: updatedUser.id,
           email: updatedUser.email,
-          verified: updatedUser.verified
+          verified: updatedUser.verified,
         });
         if (updatedUser) {
           const User = (await RiderInstance.findOne({
             where: { email: decode.email },
-          })) as unknown as RiderAttributes
+          })) as unknown as RiderAttributes;
           return res.status(200).json({
             message: "Your account have been verified successfully",
             signature,
-            verified: User.verified
-          })
+            verified: User.verified,
+          });
         }
       }
     }
     return res.status(400).json({
-      Error: 'invalid credentials or OTP already expired'
-    })
-  }
-  catch (err) {
+      Error: "invalid credentials or OTP already expired",
+    });
+  } catch (err) {
     res.status(500).json({
       Error: "Internal server Error",
-      route: "/users/verify"
-    })
+      route: "/users/verify",
+    });
   }
-}
-
+};
 
 /**============================Resend OTP=========================== **/
 export const ResendOTP = async (req: Request, res: Response) => {
@@ -257,15 +286,17 @@ export const ResendOTP = async (req: Request, res: Response) => {
     const token = req.params.signature;
     const decode = await verifySignature(token);
     // check if user is a registered user
-    const User = await RiderInstance.findOne({
-      where: { email: decode.email }
-    }) as unknown as RiderAttributes;
+    const User = (await RiderInstance.findOne({
+      where: { email: decode.email },
+    })) as unknown as RiderAttributes;
     if (User) {
       //Generate otp
       const { otp, expiry } = GenerateOTP();
       //update user
-      const updatedUser = await RiderInstance.update({ otp, otp_expiry: expiry },
-        { where: { email: decode.email } }) as unknown as RiderAttributes;
+      const updatedUser = (await RiderInstance.update(
+        { otp, otp_expiry: expiry },
+        { where: { email: decode.email } }
+      )) as unknown as RiderAttributes;
       if (updatedUser) {
         //Send OTP to user
         // await onRequestOTP(otp, User.phone);
@@ -273,21 +304,21 @@ export const ResendOTP = async (req: Request, res: Response) => {
         const html = emailHtml(otp);
         await mailSent(FromAdminMail, User.email, userSubject, html);
         return res.status(200).json({
-          message: "OTP resent successfully, kindly check your eamil or phone number for OTP verification"
-        })
+          message:
+            "OTP resent successfully, kindly check your eamil or phone number for OTP verification",
+        });
       }
     }
     return res.status(400).json({
-      Error: 'Error sending OTP'
-    })
+      Error: "Error sending OTP",
+    });
   } catch (err) {
     return res.status(500).json({
       Error: "Internal server Error",
-      route: "/users/resend-otp/:signature"
-    })
+      route: "/users/resend-otp/:signature",
+    });
   }
-}
-
+};
 
 //==========get all pending bids===========\\
 export const getAllBiddings = async (req: JwtPayload, res: Response) => {
@@ -339,12 +370,7 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
     if (rider) {
       const { otp, expiry } = GenerateOTP()
       const updatedBidding = await OrderInstance.update(
-        {
-          status: "accepted",
-          riderId: id,
-          otp: otp,
-          otp_expiry: expiry
-        },
+        { status: "accepted", riderId: id, acceptedTime: new Date() },
         { where: { id: orderId } }
       );
       
@@ -378,12 +404,11 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
       }
       return res.status(400).json({
         Error: "Error accepting bid",
-      })
+      });
     }
     return res.status(400).json({
       Error: "You are not authorised to view this page",
-    })
-
+    });
   } catch (err) {
     res.status(500).json({
       Error: "Internal server Error",
@@ -391,20 +416,19 @@ export const acceptBid = async (req: JwtPayload, res: Response) => {
       message: err,
     });
   }
-}
-
-
-
+};
 
 export const getOrderById = async (req: JwtPayload, res: Response) => {
   try {
     const id = req.params.id;
     const riderId = req.rider.id;
-    const rider = await RiderInstance.findOne({ where: { id: riderId } }) as unknown as RiderAttributes;
+    const rider = (await RiderInstance.findOne({
+      where: { id: riderId },
+    })) as unknown as RiderAttributes;
     if (rider) {
-      const order = await OrderInstance.findOne({
+      const order = (await OrderInstance.findOne({
         where: { id: id },
-      }) as unknown as OrderAttribute;
+      })) as unknown as OrderAttribute;
 
       if (order) {
         return res.status(200).json({
@@ -415,12 +439,8 @@ export const getOrderById = async (req: JwtPayload, res: Response) => {
     }
 
     return res.status(400).json({
-      Error: "Not authorized"
+      Error: "Not authorized",
     });
-
-
-
-
   } catch (err) {
     return res.status(500).json({
       Error: "Internal server Error",
@@ -429,33 +449,33 @@ export const getOrderById = async (req: JwtPayload, res: Response) => {
   }
 };
 
-
 /**============================Rider History=========================== **/
 export const RiderHistory = async (req: JwtPayload, res: Response) => {
   try {
     const id = req.rider.id;
-    const Rider = await RiderInstance.findOne({ where: { id: req.rider.id } });
+    const Rider = await RiderInstance.findOne({ where: { id: id } });
     if (Rider) {
-      const history = await RiderInstance.findAll({
-        where: { id: id },
-        include: [{
-          model: OrderInstance,
-          as: "order",
-          attributes: ["dropOffLocation", "dropOffPhoneNumber", "status", "dateCreated"]
-        }]
-      }) as unknown as RiderAttributes;
+      const history = await OrderInstance.findAndCountAll({
+        where: { riderId: id },
+      });
+
+      if (!history)
+        return res.status(404).json({
+          Error: "no data available",
+        });
       return res.status(200).json({
-        history
-      })
+        rows: history.rows,
+        count: history.count,
+      });
     }
   } catch (err) {
     return res.status(500).json({
       Error: "Internal server Error",
       route: "/riders/rider-history",
-      err: err
-    })
+      err: err,
+    });
   }
-}
+};
 
 /** ============= Get Rider Profile  =====================*/
 export const getRiderProfile = async (req: Request, res: Response) => {
@@ -466,17 +486,10 @@ export const getRiderProfile = async (req: Request, res: Response) => {
       include: [
         {
           model: RiderInstance,
-          as: 'rider',
-          attributes: [
-            "id",
-            "name",
-            "phone",
-            "plateNumber",
-            "passport"
-
-          ]
-        }
-      ]
+          as: "rider",
+          attributes: ["id", "name", "phone", "plateNumber", "passport"],
+        },
+      ],
     });
 
     if (order) {
@@ -493,89 +506,217 @@ export const getRiderProfile = async (req: Request, res: Response) => {
       Error: "Internal server Error",
       route: "/rider-order-profile",
       message: err,
-    })
+    });
   }
-}
-
-
+};
 
 /**==================Delivery OTP==================== **/
 export const VerifyDeliveryOtp = async (req: JwtPayload, res: Response) => {
   try {
     const orderId = req.params.orderId;
     const riderId = req.rider.id;
-    
-      const order = await OrderInstance.findOne({
-      where: { id: orderId, riderId:riderId, status: "accepted" }
-    }) as unknown as OrderAttribute   
-    
-        if (order) {
-        //check if the otp submitted by the user is correct and is same with the one in the database        
-        const { otp } = req.body     
-           if (order.otp === parseInt(otp) && order.otp_expiry >= new Date()) {
-          //update user        
-           const updatedOrder = await OrderInstance.update({ status: "completed" },
-          { where: { otp: order.otp } }) as unknown as OrderAttribute       
-             console.log(order)
-     
-                     if (updatedOrder) {
-        const Order = (await OrderInstance.findOne({
-          where: { id: orderId },
-        })) as unknown as OrderAttribute      
+    // const token = req.params.signature    // const decode = await verifySignature(riderId)
+    // // check if user is a registered user
+    const order = (await OrderInstance.findOne({
+      where: { id: orderId, riderId: riderId, status: "accepted" },
+    })) as unknown as OrderAttribute;
+    //  const rider = await RiderInstance.findOne({
+    //   where: {id: riderId}
+    // }) as unknown as RiderAttributes
+    // const order = await OrderInstance.findOne({where: {id:id}}) as unknown as OrderAttribute
+    // const mainOrder = await OrderInstance.findOne({where: {orders.otp:otp}}) as unknown as OrderAttribute
+    console.log(order);
+    if (order) {
+      //check if the otp submitted by the user is correct and is same with the one in the database
+      const { otp } = req.body;
+      const hour = 100 * 60 * 60;
+      const anHour = Date();
+      const newDate = new Date();
+      const getHrAgo = (e:any) => {
+        return new Date(e - hour);
+      };
+      if (order.otp === parseInt(otp) && order.otp_expiry >= getHrAgo(newDate)) {
+        //update user
+        const updatedOrder = (await OrderInstance.update(
+          { status: "completed", completedTime: new Date() },
+          { where: { otp: order.otp } }
+        )) as unknown as OrderAttribute;
+        console.log(order);
+        // Generate a new Signature
+        // let signature = await GenerateSignature({
+        //   id: updatedOrder?.id        // });
+        if (updatedOrder) {
+          const Order = (await OrderInstance.findOne({
+            where: { id: orderId },
+          })) as unknown as OrderAttribute;
           return res.status(200).json({
-          message: "Otp successfully verified"        })
+            message: "Otp successfully verified",
+          });
+        }
+        return res.status(400).json({
+          Error: "invalid credentials or OTP already expired",
+        });
+      }
+      return res.status(400).json({
+        Error: "You must be a logged in rider",
+      });
     }
     return res.status(400).json({
-      Error: 'invalid credentials or OTP already expired'    })
-  }
-  return res.status(400).json({
-    Error: 'You must be a logged in rider'  })
-  }
-  return res.status(400).json({
-    Error: 'Order does not exist'  })
-  }
-  catch (err) {
-    console.log(err)
+      Error: "Order does not exist",
+    });
+  } catch (err) {
+    console.log(err);
     res.status(500).json({
       Error: "Internal server Error",
-      route: "/riders/delivery-verify"
-    })
+      route: "/riders/delivery-verify",
+    });
   }
-}
-
-
+};
 /**============================Resend OTP=========================== **/
-export const DeliveryResendOTP = async (req:JwtPayload, res: Response) => {
+export const DeliveryResendOTP = async (req: JwtPayload, res: Response) => {
   try {
     const orderId = req.params.orderId;
     const riderId = req.rider.id;
-    const order = await OrderInstance.findOne({
-      where: { id: orderId }
-    }) as unknown as OrderAttribute   
-     if (order) {
-      //Generate otp     
-       const { otp, expiry } = GenerateOTP();
-      //update user     
-       const updatedOrder = await OrderInstance.update({ otp:otp, otp_expiry: expiry },
-        { where: { id: order.id } }) as unknown as OrderAttribute;
+    const order = (await OrderInstance.findOne({
+      where: { id: orderId },
+    })) as unknown as OrderAttribute;
+    if (order) {
+      //Generate otp
+      const { otp, expiry } = GenerateOTP();
+      //update user
+      const updatedOrder = (await OrderInstance.update(
+        { otp: otp, otp_expiry: expiry },
+        { where: { id: order.id } }
+      )) as unknown as OrderAttribute;
       if (updatedOrder) {
-        //Send OTP to user      
-          // await onRequestOTP(otp, User.phone);      
-          //send Email      
-          const user = await UserInstance.findOne({where: {id:order.userId}}) as unknown as UserAttribute    
-          const html = emailHtml(otp);
+        //Send OTP to user
+        // await onRequestOTP(otp, User.phone);
+        //send Email
+        const user = (await UserInstance.findOne({
+          where: { id: order.userId },
+        })) as unknown as UserAttribute;
+        const html = emailHtml(otp);
         await mailSent(FromAdminMail, user.email, userSubject, html);
         return res.status(200).json({
-          message: "OTP resent successfully, kindly check your email or phone number for OTP verification"        })
+          message:
+            "OTP resent successfully, kindly check your email or phone number for OTP verification",
+        });
       }
     }
     return res.status(400).json({
-      Error: 'Error sending OTP'    })
+      Error: "Error sending OTP",
+    });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return res.status(500).json({
       Error: "Internal server Error",
-      route: "/riders/resend-otp/:signature"    })
+      route: "/riders/resend-otp/:signature",
+    });
   }
-}
+};
 
+/**============================Earnings=========================== **/
+
+export const RiderEarnings = async (req: JwtPayload, res: Response) => {
+  try {
+    const id = req.rider.id;
+    const Rider = await RiderInstance.findOne({ where: { id: req.rider.id } });
+    if (Rider) {
+      const result = await OrderInstance.findAndCountAll({
+        limit: 10,
+        offset: 0,
+        order: [["completedTime", "DESC"]],
+        where: {
+          riderId: id,
+          status: "completed",
+        },
+      });
+
+      return res.status(201).json({
+        message: "You have successfully retrieved your earnings",
+        rows: result.rows,
+        count: result.count,
+      });
+    }
+    return res.status(401).json({
+      Error: "You must be a registered rider",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      Error: "Internal server Error",
+      route: "/riders/rider-earnings",
+      err: err,
+    });
+  }
+};
+
+/*************************GET ALL COMPLETED ORDERS ****************************/
+export const getMyCompletedRides = async (req: JwtPayload, res: Response) => {
+  try {
+    const { id } = req.rider;
+
+    const user = (await RiderInstance.findOne({
+      where: { id: id },
+    })) as unknown as RiderAttributes;
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+
+    const completedOrders = await OrderInstance.findAndCountAll({
+      where: { riderId: id, status: "completed" },
+    });
+
+    if (!completedOrders) {
+      return res.status(400).json({
+        message: "No orders found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Orders fetched successfully",
+      count: completedOrders.count,
+    });
+  } catch (error) {
+    res.status(500).json({
+      Error: "Internal server Error",
+      route: "/riders-completed-rides",
+      msg: error,
+    });
+  }
+};
+//==========================GET Accepted Biddings====================**/
+export const getAcceptedBid = async (req: JwtPayload, res: Response) => {
+  try {
+    const { id } = req.rider;
+    const user = (await RiderInstance.findOne({
+      where: { id: id },
+    })) as unknown as RiderAttributes;
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+    const Orders = await OrderInstance.findAndCountAll({
+      where: { riderId: id, status: "accepted" },
+    });
+    if (!Orders) {
+      return res.status(400).json({
+        message: "No orders found",
+      });
+    }
+    res.status(200).json({
+      message: "Orders fetched successfully",
+      rows: Orders.rows,
+      count: Orders.count,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      Error: "Internal server Error",
+      route: "/get-all-rides",
+      msg: error,
+    });
+  }
+};

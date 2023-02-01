@@ -18,6 +18,7 @@ export interface UserAttribute {
   latitude: number;
   verified:boolean
   role: string;
+  passport?: string;
 }
 export class UserInstance extends Model<UserAttribute> {}
 
@@ -68,6 +69,10 @@ UserInstance.init(
       allowNull: false,
     },
     address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    passport: {
       type: DataTypes.STRING,
       allowNull: true,
     },

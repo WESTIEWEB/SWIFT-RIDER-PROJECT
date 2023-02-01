@@ -15,15 +15,16 @@ import {
   getMyOrders,
   getOrder,
   deleteOrder,
-  myNotification,
-  updateNotification
+  // myNotification,
+  // updateNotification
 } from "../controller/userController";
 import { auth } from "../middleware/authorization";
+import { upload } from "../utils/multer";
 
 const router = express.Router();
 
 router.post("/signup", Signup);
-router.patch("/updateUserProfile/:id", auth, UpdateUserProfile);
+router.patch("/updateUserProfile",upload.single('photo'), auth, UpdateUserProfile);
 router.post("/login", Login);
 router.post("/verify/:signature", VerifyUser);
 router.get("/resend-otp/:signature", ResendOTP);
@@ -42,7 +43,7 @@ router.get("/my-order/:ids", getOrder);
 router.delete("delete-order/:id", auth, deleteOrder);
 
 //notification
-router.get("/my-notification", auth, myNotification);
-router.patch("/update-notification/:notifyId", auth, updateNotification);
+// router.get("/my-notification", auth, myNotification);
+// router.patch("/update-notification/:notifyId", auth, updateNotification);
 
 export default router;
