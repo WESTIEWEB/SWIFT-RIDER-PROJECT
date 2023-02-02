@@ -23,7 +23,7 @@ router.get('/get-rider-earnings', authRider, RiderEarnings)
 
 router.patch("/accept-bid/:orderId", authRider, acceptBid);
 router.get('/get-order-owner-name-byId/:orderOwnerId', getOrderOwnerNameById)
-router.get('/delivery-resend-otp/:orderId',authRider, DeliveryResendOTP);
+router.get('/delivery-resend-otp/:orderId', DeliveryResendOTP);
 router.get('/rider-dashdoard-completed-orders', authRider, getMyCompletedRides);
 router.get('/rider-dashboard-pending-orders', authRider, getAcceptedBid)
 

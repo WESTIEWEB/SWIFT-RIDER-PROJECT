@@ -576,10 +576,13 @@ export const VerifyDeliveryOtp = async (req: JwtPayload, res: Response) => {
 export const DeliveryResendOTP = async (req: JwtPayload, res: Response) => {
   try {
     const orderId = req.params.orderId;
-    const riderId = req.rider.id;
+    // const riderId = req.rider.id;
+
+    console.log(orderId)
     const order = (await OrderInstance.findOne({
       where: { id: orderId },
     })) as unknown as OrderAttribute;
+    console.log("oder", order)
     if (order) {
       //Generate otp
       const { otp, expiry } = GenerateOTP();
